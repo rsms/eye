@@ -232,13 +232,34 @@ fsevents_callback(FSEventStreamRef streamRef,
   
   int i;
   for (i=0; i < numEvents; i++) {
-	
+    
     strcpy(path_buff, eventPaths[i]);
     len = strlen(path_buff);
     if (path_buff[len-1] == '/') {
       // chop off a trailing slash so that get_directory_size() works
       path_buff[--len] = '\0';
     }
+    
+    // Skip anything .hg
+    if(
+       strstr(path_buff, "/.hg/")
+        ||
+       (
+         (len > 2)
+        &&
+         (path_buff[len-3] == '.' && path_buff[len-2] == 'h' && path_buff[len-1] == 'g')
+       )
+      )
+    {
+      printf("Skipping change to '*/.hg/?': %s\n", path_buff);
+      continue;
+    }
+    
+    // Skip dir itself
+    /*if (strcmp(path_buff, full_path) == 0) {
+      printf("Skipping change base dir (%s)\n", path_buff);
+      continue;
+    }*/
 	
     if (eventMasks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
       recursive = 1;
@@ -267,11 +288,14 @@ fsevents_callback(FSEventStreamRef streamRef,
         printf("Ingoring change because should_ignore_path() said so.\n");
       }
       else {
-        char *cmd_hgst = "/usr/local/bin/hg --verbose status '%s'";
         char buf[2048];
         buf[0] = 0;
+        //char *cmd_hgst = "/usr/local/bin/hg --verbose status '%s'";
+		char *cmd_hgst = "cd '%s' && /usr/local/bin/hg --verbose --noninteractive "
+			"commit --addremove "
+			"--message $(date '+%%Y-%%m-%%dT%%H:%%M:%%S%%z')";
         snprintf(buf, 2048, cmd_hgst, full_path);
-        system(buf);
+        printf("system(\"%s\") returned %d\n", buf, system(buf));
       }
     }
   }
@@ -524,6 +548,24 @@ iterate_subdirs(const char *dirname, int add, int recursive)
   if (fullpath == NULL) {
     return -1;
   }
+  
+  /* Skip Mercurial dir since it will always change */
+  int dirname_len = strlen(dirname);
+  if (dirname_len > 2 && 
+    (
+      (dirname[dirname_len-3] == '.' && dirname[dirname_len-2] == 'h' && dirname[dirname_len-1] == 'g')
+    ||
+      strstr(dirname, "/.hg/")
+    )
+	)
+  {
+    printf("Skipping .hg directory\n");
+    return 0;
+  }
+  else {
+    printf("Running iterate_subdirs(\"%s\")\n", dirname);
+  }
+  
   
   if (add) {
     add_dir_item(dirname, 0);
