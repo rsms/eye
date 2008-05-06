@@ -1,19 +1,3 @@
-
-
-//
-// This program is a simple example of using the FSEvents
-// framework that monitors a directory hierarchy and keeps
-// track of the total size of data contained in it.  When
-// a directory inside of it changes, it recalculates the
-// size of that directory and updates the total size.
-//
-// The program is intentionally simplistic but demonstrates
-// the use of the FSEvents api in a hopefully clear fashion.
-//
-// To compile:
-//  cc -Wall -g -o Watcher Watcher.c -framework CoreFoundation -framework FSEvents
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,398 +13,225 @@
 #include <CoreServices/CoreServices.h>
 
 
-//
-//--------------------------------------------------------------------------------
-// defines and structs
-//
+#pragma mark -
+#pragma mark Macros
 
-#define T_or_F(x) ((x) ? "TRUE" : "FALSE")
+#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
 
-struct settings_t {
-  FSEventStreamEventId sinceWhen;
-  CFAbsoluteTime     latency;
-  int          flags;
-  int          num_paths;
-  const char     **array_of_paths;
-  bool         print_settings;
-  bool         verbose;
-  int          flush_seconds;
-} _settings;
+// Log to stderr
+#define log_error(fmt, ...)   fprintf(stderr, "E %s:%-4d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define log_warn(fmt, ...)    fprintf(stderr, "W %s:%-4d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define log_info(fmt, ...)    fprintf(stderr, "I %s:%-4d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#if DEBUG
+  #define log_debug(fmt, ...) fprintf(stderr, "D %s:%-4d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+  #define IFDEBUG(x) x
+#else
+  #define log_debug(fmt, ...) ((void)0)
+  #define IFDEBUG(x) 
+#endif
 
-struct settings_t *settings = &_settings;
 
-//
-//--------------------------------------------------------------------------------
-// Prototypes
-//
+#pragma mark -
+#pragma mark Prototypes
 
-static FSEventStreamRef my_FSEventStreamCreate(const char *path);
-
-static off_t get_directory_size(const char *path, int add, int recursive);
-static off_t get_total_size(void);
+static FSEventStreamRef my_FSEventStreamCreate(const char **paths, size_t num_paths);
 
 
 
-//
-//--------------------------------------------------------------------------------
-//
+#pragma mark -
+#pragma mark Helpers
 
-// For things that should be logged only when -verbose is turned on.
-static void
-LogV(const char *format, ...)
-{
-  if (!settings->verbose) {
-    return;
-  }
-  
-  va_list ap;
-  va_start(ap, format);
-  (void) vfprintf(stderr, format, ap);
-  va_end(ap);
-}
-
-// For logging errors.
-static void
-LogError(const char *format, ...)
-{
-  va_list ap;
-  va_start(ap, format);
-  (void) vfprintf(stderr, format, ap);
-  va_end(ap);
-}
-
-// For things that could go to stdout, but currently go to stderr to prevent out-of-order output with stderr output.
-static void
-Print(const char *format, ...)
-{
-  va_list ap;
-  va_start(ap, format);
-  if (settings->verbose) {
-    (void) vfprintf(stderr, format, ap);
-  } else {
-    (void) vfprintf(stdout, format, ap);
-  }
-  va_end(ap);
-}
-
-//
-//--------------------------------------------------------------------------------
-//
-
-static void usage(const char *progname)
-{
-  Print("\n");
-  Print("Usage: %s <flags> <path>\n", progname);
-  Print("Flags:\n");
-  Print("     -sinceWhen <when>      Specify a time from whence to search for applicable events\n");
-  Print("     -latency <seconds>     Specify latency\n");
-  Print("     -flags <flags>       Specify flags as a number\n");
-  Print("     -flush <seconds>       Invoke FSEventStreamFlushAsync() after the specified number of seconds.\n");
-  Print("\n");
-  exit(-1);
-}
-
-static void print_settings()
-{
-  Print("%s: settings->sinceWhen = %lld\n", __FUNCTION__, settings->sinceWhen);
-  Print("%s: settings->latency = %f\n", __FUNCTION__, settings->latency);
-  Print("%s: settings->flags = 0x%x\n", __FUNCTION__, settings->flags);
-  Print("%s: settings->num_paths = %d\n", __FUNCTION__, settings->num_paths);
-  if (settings->num_paths > 0) {
-    int i;
-    for (i = 0; i < settings->num_paths; i++) {
-      Print("%s: settings->array_of_paths[%d] = '%s'\n", __FUNCTION__, i, settings->array_of_paths[i]);
-    }
-  }
-  Print("%s: settings->verbose = %s\n", __FUNCTION__, T_or_F(settings->verbose));
-  Print("%s: settings->print_settings = %s\n", __FUNCTION__, T_or_F(settings->print_settings));
-  Print("%s: settings->flush_seconds = %d\n", __FUNCTION__, settings->flush_seconds);
-}
-
-static void
-parse_settings(int argc, const char *argv[], struct settings_t *settings)
-{
-  int i;
-  settings->latency = 1.0;
-  
-  settings->sinceWhen = kFSEventStreamEventIdSinceNow;
-  
-  settings->flush_seconds = -1;
-  
-  for (i=1; i < argc; i++) {
-    if (strcmp(argv[i], "-usage") == 0) {
-      usage(argv[0]);
-    } else if (strcmp(argv[i], "-print_settings") == 0) {
-      settings->print_settings = true;
-    } else if (strcmp(argv[i], "-sinceWhen") == 0) {
-      settings->sinceWhen = strtoull(argv[++i], NULL, 0);
-    } else if (strcmp(argv[i], "-latency") == 0) {
-      settings->latency = strtod(argv[++i], NULL);
-    } else if (strcmp(argv[i], "-flags") == 0) {
-      settings->flags = strtoul(argv[++i], NULL, 0);
-    } else if (strcmp(argv[i], "-flush") == 0) {
-      settings->flush_seconds = strtod(argv[++i], NULL);
-    } else if (strcmp(argv[i], "-verbose") == 0) {
-      settings->verbose = true;
-    } else {
-      // Done parsing flags, the rest of the arguments must be paths.
-      break;
-    }
-  }
-  
-  if (argc-i >= 1) {
-    settings->num_paths = argc - i;
-    settings->array_of_paths = &argv[i];
-  }
-}
-
-//
-//--------------------------------------------------------------------------------
-//
-
-static void __attribute__ ((unused)) 
-print_flags(FSEventStreamEventFlags flags)
-{
-  int numFlags = 0;
-  if (flags & kFSEventStreamEventFlagMustScanSubDirs) {
-    Print("%sMustScanSubDirs", numFlags++ > 0 ? "," : "");
-  }
-  
-  if (flags & kFSEventStreamEventFlagUserDropped) {
-    Print("%sUserDropped", numFlags++ > 0 ? "," : "");
-  }
-  if (flags & kFSEventStreamEventFlagKernelDropped) {
-    Print("%sKernelDropped", numFlags++ > 0 ? "," : "");
-  }
-}
 
 int should_ignore_path(const char *path) {
-  return fnmatch("*/.DS_Store", path, 0) == 0;
+  if(strstr(path, "/.hg"))
+    return 1;
+  //return fnmatch("*/", path, 0) == 0;
+  return 0;
 }
 
-//
-//--------------------------------------------------------------------------------
-// Callback routines
-//
+
+void absolutize_path(const char *path, char *buf) {
+  if (realpath(path, buf) == NULL)
+    strlcpy(buf, path, sizeof(buf));
+}
+
+
+#pragma mark -
+#pragma mark Callback routines
 
 static void
-timer_callback(CFRunLoopRef timer, void *info)
-{
+timer_callback(CFRunLoopRef timer, void *info) {
   FSEventStreamRef streamRef = (FSEventStreamRef)info;
-  
-  LogV("%s: CFAbsoluteTimeGetCurrent() => %.3f\n", __FUNCTION__, CFAbsoluteTimeGetCurrent());
-  LogV("%s: FSEventStreamFlushAsync(streamRef = %p)...\n", __FUNCTION__, streamRef);
+  log_debug("CFAbsoluteTimeGetCurrent() => %.3f", CFAbsoluteTimeGetCurrent());
+  log_debug("FSEventStreamFlushAsync(streamRef = %p)...", streamRef);
   FSEventStreamFlushAsync(streamRef);
 }
 
+typedef void ( *FSEventStreamCallback)( 
+                                       ConstFSEventStreamRef streamRef, 
+                                       void *clientCallBackInfo, 
+                                       size_t numEvents, 
+                                       void *eventPaths, 
+                                       const FSEventStreamEventFlags eventFlags[], 
+                                       const FSEventStreamEventId eventIds[]);
+
 static void
 fsevents_callback(FSEventStreamRef streamRef,
-                  void *clientCallBackInfo, 
-                  int numEvents,
-                  const char *const eventPaths[], 
+                  void *user_data, 
+                  size_t numEvents,
+                  /* void* */const char *const event_paths[], 
                   const FSEventStreamEventFlags *eventMasks, 
-                  const uint64_t *eventIDs)
+                  const FSEventStreamEventId event_ids[])
 {
-  int   len, recursive;
-  off_t new_size;
-  char  path_buff[PATH_MAX];
-  const char *full_path = (const char *)clientCallBackInfo;
+  int recursive;
+  const char *path = NULL;
+  FSEventStreamEventId event_id;
+  char cmd_buf[PATH_MAX*2];
+  //char *cmd_hgst = "/usr/local/bin/hg --verbose status '%s'";
+  static char cmd_hgst[] = "/usr/local/bin/hg -v -y --cwd '%s' ci -A -m eyed:autocommit";
   
-  printf("\n-------------------------------------------------------------------\n");
-  LogV("%s(streamRef = %p, clientCallBackInfo = %p, numEvents = %d)\n",
-       __FUNCTION__, streamRef, clientCallBackInfo, numEvents);
-  //LogV("%s: FSEventStreamGetSinceWhen(streamRef) => %lld\n", __FUNCTION__, FSEventStreamGetSinceWhen(streamRef));
+  log_debug("streamRef = %p, numEvents = %ld", streamRef, numEvents);
   
-  int i;
-  for (i=0; i < numEvents; i++) {
+  for (size_t i=0; i < numEvents; i++) {
+    path = event_paths[i];
     
-    printf("\n  Event %d of %d ------------------------------------------------\n", i+1, numEvents);
-    
-    strcpy(path_buff, eventPaths[i]);
-    len = strlen(path_buff);
-    if (path_buff[len-1] == '/') {
-      // chop off a trailing slash so that get_directory_size() works
-      path_buff[--len] = '\0';
-    }
-    
-    // Skip anything .hg
-    if(
-       strstr(path_buff, "/.hg/")
-        ||
-       (
-         (len > 2)
-        &&
-         (path_buff[len-3] == '.' && path_buff[len-2] == 'h' && path_buff[len-1] == 'g')
-       )
-      )
-    {
-      printf("  Skipping change to '*/.hg/?': %s\n", path_buff);
+    // Skip this path?
+    if(should_ignore_path(path)) {
+      //log_debug("Skipping change to '*/.hg/?': %s", path_buff);
       continue;
     }
     
-    // Skip dir itself
-    /*if (strcmp(path_buff, full_path) == 0) {
-      printf("Skipping change base dir (%s)\n", path_buff);
-      continue;
-    }*/
+    event_id = event_ids[i];
+    
+    log_debug("Processing event %llx (%d of %d) \"%s\"", event_id, i+1, numEvents, path);
 	
     if (eventMasks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
+      log_debug("MustScanSubDirs flag set -- performing a full rescan");
       recursive = 1;
-    } else if (eventMasks[i] & kFSEventStreamEventFlagUserDropped) {
-      printf("  BAD NEWS! We dropped events.\n");
-      printf("  Forcing a full rescan.\n");
+    }
+    else if (eventMasks[i] & kFSEventStreamEventFlagUserDropped) {
+      log_warn("We dropped events -- forcing a full rescan");
       recursive = 1;
-      strlcpy(path_buff, full_path, sizeof(path_buff));
-    } else if (eventMasks[i] & kFSEventStreamEventFlagKernelDropped) {
-      printf("  REALLY BAD NEWS! The kernel dropped events.\n");
-      printf("  Forcing a full rescan.\n");
+      //XXX: todo: strlcpy(path, full_path, sizeof(path));
+    }
+    else if (eventMasks[i] & kFSEventStreamEventFlagKernelDropped) {
+      log_warn("Kernel dropped events -- forcing a full rescan");
       recursive = 1;
-      strlcpy(path_buff, full_path, sizeof(path_buff));
-    } else {
+      //XXX: todo: strlcpy(path, full_path, sizeof(path));
+    }
+    else {
+      log_debug("Performing normal scan");
       recursive = 0;
     }
-	
-    new_size = get_directory_size(path_buff, 0, recursive);
-    if (new_size < 0) {
-      printf("  Could not update size on %s\n", path_buff);
-    } else {
-      printf("  New total size: %lld (change made to: %s) for path: \"%s\" recursive: %s\n",
-           get_total_size(), path_buff, full_path, recursive ? "YES" : "NO");
-      
-      if(should_ignore_path(full_path)) {
-        printf("  Ingoring change because should_ignore_path() said so.\n");
-      }
-      else {
-        char buf[2048];
-        buf[0] = 0;
-        //char *cmd_hgst = "/usr/local/bin/hg --verbose status '%s'";
-		char *cmd_hgst = "cd '%s' && /usr/local/bin/hg --verbose --noninteractive "
-			"commit --addremove "
-			"--message $(date '+%%Y-%%m-%%dT%%H:%%M:%%S%%z')";
-        snprintf(buf, 2048, cmd_hgst, full_path);
-        printf("  system(\"%s\") returned %d\n", buf, system(buf));
-      }
-    }
+    
+    cmd_buf[0] = 0;
+    snprintf(cmd_buf, PATH_MAX*2, cmd_hgst, path);
+    log_debug("system(\"%s\")", cmd_buf);
+    int pstat = system(cmd_buf);
+    log_debug("system() returned %d", pstat);
   }
 }
 
 
-//
-//--------------------------------------------------------------------------------
-//  Simple wrapper to create an FSEventStream
-//
+#pragma mark -
+#pragma mark Simple wrapper to create an FSEventStream
 
-static FSEventStreamRef my_FSEventStreamCreate(const char *path)
+static FSEventStreamRef my_FSEventStreamCreate(const char **paths, size_t num_paths)
 {
-  void         *info_pointer = (void *)path;
-  FSEventStreamContext  context = {0, info_pointer, NULL, NULL, NULL};
+  void         *user_data = (void *)(num_paths ? paths[0] : "?");
+  FSEventStreamContext  context = {0, user_data, NULL, NULL, NULL};
   FSEventStreamRef    streamRef = NULL;
   CFMutableArrayRef   cfArray;
   
+  // Settings
+  FSEventStreamEventId sinceWhen = kFSEventStreamEventIdSinceNow;
+  int                  flags = 0;
+  CFAbsoluteTime       latency = 5.0; // How long it takes from that something 
+                                      // happened to an event is dispatched.
+  
+  // Used as buffer for absolutize_path
+  char abspath[PATH_MAX];
+  
+  // Create paths array
   cfArray = CFArrayCreateMutable(kCFAllocatorDefault, 1, &kCFTypeArrayCallBacks);
   if (NULL == cfArray) {
-    LogError("%s: ERROR: CFArrayCreateMutable() => NULL\n", __FUNCTION__);
+    log_error("CFArrayCreateMutable() => NULL");
     goto Return;
   }
   
-  CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorDefault, path, kCFStringEncodingUTF8);
-  if (NULL == cfStr) {
-    CFRelease(cfArray);
-    goto Return;
+  // Add paths to array
+  for(int i=0; i<num_paths; i++) {
+    absolutize_path(paths[i], abspath);
+    CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorDefault, abspath, kCFStringEncodingUTF8);
+    if (NULL == cfStr) {
+      CFRelease(cfArray);
+      goto Return;
+    }
+    CFArraySetValueAtIndex(cfArray, i, cfStr);
+    CFRelease(cfStr);
   }
   
-  CFArraySetValueAtIndex(cfArray, 0, cfStr);
-  CFRelease(cfStr);
-  
-  if (settings->verbose) {
-    CFShow(cfArray);
-  }
-  
+  // Create the stream
   streamRef = FSEventStreamCreate(kCFAllocatorDefault,
                   (FSEventStreamCallback)&fsevents_callback,
                   &context,
                   cfArray,
-                  settings->sinceWhen,
-                  settings->latency,
-                  settings->flags);
-  CFRelease(cfArray);
+                  /*settings->*/sinceWhen,
+                  /*settings->*/latency,
+                  /*settings->*/flags);
+  
+  // Check if FSEventStreamCreate failed
   if (NULL == streamRef) {
-    LogError("%s: ERROR: FSEventStreamCreate() => NULL\n", __FUNCTION__);
+    log_error("FSEventStreamCreate() failed");
     goto Return;
   }
   
-  if (settings->verbose) {
+  // Print the setup
+  IFDEBUG(
     FSEventStreamShow(streamRef);
-  }
+  )
   
 Return:
+  // Release our array
+  CFRelease(cfArray);
+  cfArray = NULL;
+  
   return streamRef;
 }
 
-//
-//--------------------------------------------------------------------------------
-//
+
+#pragma mark -
+#pragma mark Main
 
 int
 main(int argc, const char * argv[])
 {
   int result = 0;
   FSEventStreamRef streamRef;
-  off_t dir_sz;
-  char fullpath[PATH_MAX];
   Boolean startedOK;
+  int flush_seconds = 3600; // When to force-flush any queued events
   
-  settings = &_settings;
-  memset(settings, 0, sizeof(struct settings_t));
-  
-  parse_settings(argc, argv, settings);
-  
-  if (settings->verbose || settings->print_settings) {
-    print_settings();
+  if(argc < 2 || strcasecmp(argv[1], "--help") == 0) {
+    fprintf(stderr, "usage: %s path ...\n", argv[0]);
+    exit(1);
   }
   
-  if (settings->print_settings) {
-    exit(0);
-  }
-  
-  if (settings->num_paths != 1) {
-    // we're lame and can only monitor one path.
-    usage(argv[0]);
-  }
-  
-  
-  //
-  // Get ourselves an absolute path (in case the
-  // user specified a relative path).
-  //
-  if (realpath(settings->array_of_paths[0], fullpath) == NULL) {
-    strlcpy(fullpath, settings->array_of_paths[0], sizeof(fullpath));
-  }
-  
-  streamRef = my_FSEventStreamCreate(fullpath);
+  const char **paths = &argv[1];
+  streamRef = my_FSEventStreamCreate(paths, argc-1);
   
   FSEventStreamScheduleWithRunLoop(streamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
   
   startedOK = FSEventStreamStart(streamRef);
   if (!startedOK) {
-    LogError("%s: failed to start the FSEventStream\n");
+    log_error("FSEventStreamStart(streamRef) failed");
     goto out;
   }
   
-  //
-  // NOTE: we get the initial size *after* we start the
-  //     FSEventStream so that there is no window
-  //     during which we would miss events.
-  //
-  dir_sz = get_directory_size(fullpath, 1, 1);
-  printf("Initial total size is: %lld for path: %s\n", get_total_size(), fullpath);
-  
-  if (settings->flush_seconds >= 0) {
-    LogV("%s: CFAbsoluteTimeGetCurrent() => %.3f\n", __FUNCTION__, CFAbsoluteTimeGetCurrent());
-	
+  if (flush_seconds >= 0) {
+    log_debug("CFAbsoluteTimeGetCurrent() => %.3f", CFAbsoluteTimeGetCurrent());
     CFAllocatorRef allocator = kCFAllocatorDefault;
-    CFAbsoluteTime fireDate = CFAbsoluteTimeGetCurrent() + settings->flush_seconds;
-    CFTimeInterval interval = settings->flush_seconds;
+    CFAbsoluteTime fireDate = CFAbsoluteTimeGetCurrent() + /*settings->*/flush_seconds;
+    CFTimeInterval interval = /*settings->*/flush_seconds;
     CFOptionFlags flags = 0;
     CFIndex order = 0;
     CFRunLoopTimerCallBack callback = (CFRunLoopTimerCallBack)timer_callback;
@@ -429,14 +240,10 @@ main(int argc, const char * argv[])
     CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopDefaultMode);
   }
   
-  //
   // Run
-  //
   CFRunLoopRun();
   
-  //
   // Stop / Invalidate / Release
-  //
   FSEventStreamStop(streamRef);
 out:
   FSEventStreamInvalidate(streamRef);
@@ -444,205 +251,3 @@ out:
   
   return result;
 }
-
-
-//
-//--------------------------------------------------------------------------------
-// Routines to keep track of the size of the directory hierarchy 
-// we are watching.
-//
-// This code is not exemplary in any way.  It should definitely
-// not be used in production code as it is inefficient.
-//
-
-typedef struct dir_item {
-  char *dirname;
-  off_t size;
-} dir_item;
-
-dir_item *dir_items=NULL;
-int     num_dir_items=0;
-int     max_dir_items=0;
-
-#define DIR_ITEM_INCR  128
-
-static int
-add_dir_item(const char *name, off_t size)
-{
-  //printf("add_dir_item:    %15ld  %s\n", (long)size, name);
-  
-  if (num_dir_items+1 >= max_dir_items) {
-    dir_item *new;
-	
-    new = (dir_item *)realloc(dir_items, (max_dir_items+DIR_ITEM_INCR)*sizeof(dir_item));
-    if (new == NULL) {
-      return ENOSPC;
-    }
-    dir_items = new;
-    max_dir_items += DIR_ITEM_INCR;
-  }
-  
-  dir_items[num_dir_items].dirname = strdup(name);
-  dir_items[num_dir_items].size  = size;
-  
-  num_dir_items++;
-  return 0;
-}
-
-
-static int
-update_dir_item(const char *name, off_t size)
-{
-  //printf("update_dir_item: %15ld  %s\n", (long)size, name);
-  int i;
-  
-  for(i=0; i < num_dir_items; i++) {
-    if (strcmp(name, dir_items[i].dirname) == 0) {
-      dir_items[i].size = size;
-      return 0;
-    }
-  }
-  
-  return ENOENT;
-}
-
-
-// note: this returns zero if the directory exists
-//     otherwise it returns one (i.e. true).
-static int
-dir_does_not_exist(const char *name)
-{
-  int i;
-  
-  for(i=0; i < num_dir_items; i++) {
-    if (strcmp(name, dir_items[i].dirname) == 0 && dir_items[i].size != 0) {
-      return 0;
-    }
-  }
-  
-  return 1;
-}
-
-
-static off_t
-get_total_size(void)
-{
-  int   i;
-  off_t size=0;
-  
-  for(i=0; i < num_dir_items; i++) {
-    size += dir_items[i].size;
-  }
-  
-  return size;
-}
-
-
-static off_t
-iterate_subdirs(const char *dirname, int add, int recursive)
-{
-  char      *fullpath;
-  DIR       *dir;
-  struct dirent *dirent;
-  struct stat  st;
-  off_t      size=0, result=0;
-  
-  fullpath = malloc(PATH_MAX);
-  if (fullpath == NULL) {
-    return -1;
-  }
-  
-  /* Skip Mercurial dir since it will always change */
-  /*int dirname_len = strlen(dirname);
-  if (dirname_len > 2 && 
-    (
-      (dirname[dirname_len-3] == '.' && dirname[dirname_len-2] == 'h' && dirname[dirname_len-1] == 'g')
-    ||
-      strstr(dirname, "/.hg/")
-    )
-	)
-  {
-    printf("Skipping .hg directory\n");
-    return 0;
-  }
-  else {
-    printf("Running iterate_subdirs(\"%s\")\n", dirname);
-  }*/
-  
-  
-  if (add) {
-    add_dir_item(dirname, 0);
-  }
-  
-  dir = opendir(dirname);
-  if (dir == NULL) {
-    if (errno == ENOENT) {       // it may have been deleted.
-      update_dir_item(dirname, 0);
-      return 0;
-    }
-	
-    printf("failed to opendir(%s) (%s)\n", dirname, strerror(errno));
-    return -1;
-  }
-  
-  dirent = NULL;
-  while ((dirent = readdir(dir)) != NULL) {
-    if (strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..") == 0)
-      continue;
-	
-    snprintf(fullpath, PATH_MAX, "%s/%s", dirname, dirent->d_name);
-    if (lstat(fullpath, &st) != 0) {
-      printf("Error stating %s : %s\n", fullpath, strerror(errno));
-      continue;
-    }
-	
-    size += st.st_size;
-    
-    if (S_ISDIR(st.st_mode) && (recursive || dir_does_not_exist(fullpath))) {
-      result = get_directory_size(fullpath, add, 1);
-      if (result < 0) {
-        printf("error getting size for %s\n", fullpath);
-      }
-    }
-    /*else {
-      printf("iterate_subdirs: %15ld  %s\n", (long)st.st_size, dirent->d_name);
-    }*/
-  }
-  
-  closedir(dir);
-  free(fullpath);
-  
-  if (update_dir_item(dirname, size) == ENOENT) {
-    add_dir_item(dirname, size);
-  }
-  
-  return size;
-}
-
-
-static void
-check_for_deleted_dirs(const char *dirname)
-{
-  int   i;
-  struct stat st;
-  
-  for(i=0; i < num_dir_items; i++) {
-    if (stat(dir_items[i].dirname, &st) != 0) {
-      dir_items[i].size = 0;
-    }
-  }
-}
-
-
-static off_t
-get_directory_size(const char *dirname, int add, int recursive)
-{
-  off_t sz;
-  
-  check_for_deleted_dirs(dirname);
-  
-  sz = iterate_subdirs(dirname, add, recursive);
-  
-  return sz;
-}
-
