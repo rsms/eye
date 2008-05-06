@@ -226,12 +226,15 @@ fsevents_callback(FSEventStreamRef streamRef,
   char  path_buff[PATH_MAX];
   const char *full_path = (const char *)clientCallBackInfo;
   
+  printf("\n-------------------------------------------------------------------\n");
   LogV("%s(streamRef = %p, clientCallBackInfo = %p, numEvents = %d)\n",
        __FUNCTION__, streamRef, clientCallBackInfo, numEvents);
   //LogV("%s: FSEventStreamGetSinceWhen(streamRef) => %lld\n", __FUNCTION__, FSEventStreamGetSinceWhen(streamRef));
   
   int i;
   for (i=0; i < numEvents; i++) {
+    
+    printf("\n  Event %d of %d ------------------------------------------------\n", i+1, numEvents);
     
     strcpy(path_buff, eventPaths[i]);
     len = strlen(path_buff);
@@ -251,7 +254,7 @@ fsevents_callback(FSEventStreamRef streamRef,
        )
       )
     {
-      printf("Skipping change to '*/.hg/?': %s\n", path_buff);
+      printf("  Skipping change to '*/.hg/?': %s\n", path_buff);
       continue;
     }
     
@@ -264,13 +267,13 @@ fsevents_callback(FSEventStreamRef streamRef,
     if (eventMasks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
       recursive = 1;
     } else if (eventMasks[i] & kFSEventStreamEventFlagUserDropped) {
-      printf("BAD NEWS! We dropped events.\n");
-      printf("Forcing a full rescan.\n");
+      printf("  BAD NEWS! We dropped events.\n");
+      printf("  Forcing a full rescan.\n");
       recursive = 1;
       strlcpy(path_buff, full_path, sizeof(path_buff));
     } else if (eventMasks[i] & kFSEventStreamEventFlagKernelDropped) {
-      printf("REALLY BAD NEWS! The kernel dropped events.\n");
-      printf("Forcing a full rescan.\n");
+      printf("  REALLY BAD NEWS! The kernel dropped events.\n");
+      printf("  Forcing a full rescan.\n");
       recursive = 1;
       strlcpy(path_buff, full_path, sizeof(path_buff));
     } else {
@@ -279,13 +282,13 @@ fsevents_callback(FSEventStreamRef streamRef,
 	
     new_size = get_directory_size(path_buff, 0, recursive);
     if (new_size < 0) {
-      printf("Could not update size on %s\n", path_buff);
+      printf("  Could not update size on %s\n", path_buff);
     } else {
-      printf("New total size: %lld (change made to: %s) for path: \"%s\" recursive: %s\n",
+      printf("  New total size: %lld (change made to: %s) for path: \"%s\" recursive: %s\n",
            get_total_size(), path_buff, full_path, recursive ? "YES" : "NO");
       
       if(should_ignore_path(full_path)) {
-        printf("Ingoring change because should_ignore_path() said so.\n");
+        printf("  Ingoring change because should_ignore_path() said so.\n");
       }
       else {
         char buf[2048];
@@ -295,7 +298,7 @@ fsevents_callback(FSEventStreamRef streamRef,
 			"commit --addremove "
 			"--message $(date '+%%Y-%%m-%%dT%%H:%%M:%%S%%z')";
         snprintf(buf, 2048, cmd_hgst, full_path);
-        printf("system(\"%s\") returned %d\n", buf, system(buf));
+        printf("  system(\"%s\") returned %d\n", buf, system(buf));
       }
     }
   }
@@ -466,7 +469,7 @@ int     max_dir_items=0;
 static int
 add_dir_item(const char *name, off_t size)
 {
-  printf("add_dir_item:    %15ld  %s\n", (long)size, name);
+  //printf("add_dir_item:    %15ld  %s\n", (long)size, name);
   
   if (num_dir_items+1 >= max_dir_items) {
     dir_item *new;
@@ -490,7 +493,7 @@ add_dir_item(const char *name, off_t size)
 static int
 update_dir_item(const char *name, off_t size)
 {
-  printf("update_dir_item: %15ld  %s\n", (long)size, name);
+  //printf("update_dir_item: %15ld  %s\n", (long)size, name);
   int i;
   
   for(i=0; i < num_dir_items; i++) {
@@ -550,7 +553,7 @@ iterate_subdirs(const char *dirname, int add, int recursive)
   }
   
   /* Skip Mercurial dir since it will always change */
-  int dirname_len = strlen(dirname);
+  /*int dirname_len = strlen(dirname);
   if (dirname_len > 2 && 
     (
       (dirname[dirname_len-3] == '.' && dirname[dirname_len-2] == 'h' && dirname[dirname_len-1] == 'g')
@@ -564,7 +567,7 @@ iterate_subdirs(const char *dirname, int add, int recursive)
   }
   else {
     printf("Running iterate_subdirs(\"%s\")\n", dirname);
-  }
+  }*/
   
   
   if (add) {
@@ -601,9 +604,9 @@ iterate_subdirs(const char *dirname, int add, int recursive)
         printf("error getting size for %s\n", fullpath);
       }
     }
-    else {
+    /*else {
       printf("iterate_subdirs: %15ld  %s\n", (long)st.st_size, dirent->d_name);
-    }
+    }*/
   }
   
   closedir(dir);
