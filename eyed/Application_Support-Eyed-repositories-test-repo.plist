@@ -1,0 +1,5 @@
+{
+  enabled = 1;
+  path = "/Users/rasmus/src/eyed/test-repo";
+  latency = 5;
+}

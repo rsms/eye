@@ -18,13 +18,13 @@ static EyeMonitor *_default = nil;
     return nil;
   
   configuration = [EyeMonitoredConfiguration defaultConfiguration];
-  [configuration reload];
   
   return self;
 }
 
 
 - (void)run {
+  [configuration reload];
   NSEnumerator *en = [configuration.repositories objectEnumerator];
   for (EyeMonitoredRepository *repo in en)
     [repo startMonitoring];
