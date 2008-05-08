@@ -7,7 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3A9EB5760DCEE45B00A4BEC7 /* eyed.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A9EB5750DCEE45B00A4BEC7 /* eyed.c */; };
+		3AEF422D0DD25E2C00ECEAC9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF422C0DD25E2C00ECEAC9 /* main.m */; };
+		3AEF430A0DD25F9500ECEAC9 /* EyeException.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF43090DD25F9500ECEAC9 /* EyeException.m */; };
+		3AEF430C0DD25FC800ECEAC9 /* ExceptionHandling.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEF430B0DD25FC800ECEAC9 /* ExceptionHandling.framework */; };
+		3AEF43120DD2604D00ECEAC9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEF43110DD2604D00ECEAC9 /* Cocoa.framework */; };
+		3AEF431B0DD262A800ECEAC9 /* EyeMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF431A0DD262A800ECEAC9 /* EyeMonitor.m */; };
+		3AEF431F0DD263F700ECEAC9 /* constants.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF431E0DD263F700ECEAC9 /* constants.m */; };
+		3AEF43D00DD2724B00ECEAC9 /* EyeMonitoredRepository.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF43CF0DD2724B00ECEAC9 /* EyeMonitoredRepository.m */; };
+		3AEF44090DD27CE500ECEAC9 /* EyeMonitored.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF44080DD27CE500ECEAC9 /* EyeMonitored.m */; };
+		3AEF440C0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF440B0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m */; };
 		8DD76F890486A9BA00D96B5E /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 097DBE83FE8419DDC02AAC07 /* CoreServices.framework */; };
 		8DD76F8C0486A9BA00D96B5E /* eyed.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E9D0290929804C91782 /* eyed.1 */; };
 /* End PBXBuildFile section */
@@ -28,6 +36,22 @@
 /* Begin PBXFileReference section */
 		097DBE83FE8419DDC02AAC07 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		3A9EB5750DCEE45B00A4BEC7 /* eyed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eyed.c; sourceTree = "<group>"; };
+		3AEF422C0DD25E2C00ECEAC9 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		3AEF43080DD25F9500ECEAC9 /* EyeException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeException.h; sourceTree = "<group>"; };
+		3AEF43090DD25F9500ECEAC9 /* EyeException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeException.m; sourceTree = "<group>"; };
+		3AEF430B0DD25FC800ECEAC9 /* ExceptionHandling.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExceptionHandling.framework; path = /System/Library/Frameworks/ExceptionHandling.framework; sourceTree = "<absolute>"; };
+		3AEF43110DD2604D00ECEAC9 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		3AEF43170DD2606900ECEAC9 /* prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prefix.pch; sourceTree = "<group>"; };
+		3AEF43190DD262A800ECEAC9 /* EyeMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeMonitor.h; sourceTree = "<group>"; };
+		3AEF431A0DD262A800ECEAC9 /* EyeMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeMonitor.m; sourceTree = "<group>"; };
+		3AEF431D0DD263F700ECEAC9 /* constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		3AEF431E0DD263F700ECEAC9 /* constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = constants.m; sourceTree = "<group>"; };
+		3AEF43CE0DD2724B00ECEAC9 /* EyeMonitoredRepository.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeMonitoredRepository.h; sourceTree = "<group>"; };
+		3AEF43CF0DD2724B00ECEAC9 /* EyeMonitoredRepository.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeMonitoredRepository.m; sourceTree = "<group>"; };
+		3AEF44070DD27CE500ECEAC9 /* EyeMonitored.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeMonitored.h; sourceTree = "<group>"; };
+		3AEF44080DD27CE500ECEAC9 /* EyeMonitored.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeMonitored.m; sourceTree = "<group>"; };
+		3AEF440A0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeMonitoredConfiguration.h; sourceTree = "<group>"; };
+		3AEF440B0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeMonitoredConfiguration.m; sourceTree = "<group>"; };
 		8DD76F8E0486A9BA00D96B5E /* eyed */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eyed; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6859E9D0290929804C91782 /* eyed.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = eyed.1; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -38,6 +62,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F890486A9BA00D96B5E /* CoreServices.framework in Frameworks */,
+				3AEF430C0DD25FC800ECEAC9 /* ExceptionHandling.framework in Frameworks */,
+				3AEF43120DD2604D00ECEAC9 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,9 +73,10 @@
 		08FB7794FE84155DC02AAC07 /* eyed */ = {
 			isa = PBXGroup;
 			children = (
-				3A9EB5750DCEE45B00A4BEC7 /* eyed.c */,
-				C6859E9D0290929804C91782 /* eyed.1 */,
-				097DBE83FE8419DDC02AAC07 /* CoreServices.framework */,
+				3AEF431C0DD263C200ECEAC9 /* Classes */,
+				3AEF43060DD25F4100ECEAC9 /* Source */,
+				3AEF43070DD25F6500ECEAC9 /* Other */,
+				3AEF424F0DD25F2E00ECEAC9 /* Frameworks */,
 				1A8B4A8EFE9D542A11CA2CBB /* Products */,
 			);
 			name = eyed;
@@ -61,6 +88,61 @@
 				8DD76F8E0486A9BA00D96B5E /* eyed */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3AEF424F0DD25F2E00ECEAC9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3AEF43110DD2604D00ECEAC9 /* Cocoa.framework */,
+				3AEF430B0DD25FC800ECEAC9 /* ExceptionHandling.framework */,
+				097DBE83FE8419DDC02AAC07 /* CoreServices.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3AEF43060DD25F4100ECEAC9 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				3AEF422C0DD25E2C00ECEAC9 /* main.m */,
+				3AEF431D0DD263F700ECEAC9 /* constants.h */,
+				3AEF431E0DD263F700ECEAC9 /* constants.m */,
+				3A9EB5750DCEE45B00A4BEC7 /* eyed.c */,
+				3AEF43170DD2606900ECEAC9 /* prefix.pch */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		3AEF43070DD25F6500ECEAC9 /* Other */ = {
+			isa = PBXGroup;
+			children = (
+				C6859E9D0290929804C91782 /* eyed.1 */,
+			);
+			name = Other;
+			sourceTree = "<group>";
+		};
+		3AEF431C0DD263C200ECEAC9 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				3AEF44180DD27E3200ECEAC9 /* Monitored */,
+				3AEF43190DD262A800ECEAC9 /* EyeMonitor.h */,
+				3AEF431A0DD262A800ECEAC9 /* EyeMonitor.m */,
+				3AEF43080DD25F9500ECEAC9 /* EyeException.h */,
+				3AEF43090DD25F9500ECEAC9 /* EyeException.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		3AEF44180DD27E3200ECEAC9 /* Monitored */ = {
+			isa = PBXGroup;
+			children = (
+				3AEF44070DD27CE500ECEAC9 /* EyeMonitored.h */,
+				3AEF44080DD27CE500ECEAC9 /* EyeMonitored.m */,
+				3AEF440A0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.h */,
+				3AEF440B0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m */,
+				3AEF43CE0DD2724B00ECEAC9 /* EyeMonitoredRepository.h */,
+				3AEF43CF0DD2724B00ECEAC9 /* EyeMonitoredRepository.m */,
+			);
+			name = Monitored;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -106,7 +188,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3A9EB5760DCEE45B00A4BEC7 /* eyed.c in Sources */,
+				3AEF422D0DD25E2C00ECEAC9 /* main.m in Sources */,
+				3AEF430A0DD25F9500ECEAC9 /* EyeException.m in Sources */,
+				3AEF431B0DD262A800ECEAC9 /* EyeMonitor.m in Sources */,
+				3AEF431F0DD263F700ECEAC9 /* constants.m in Sources */,
+				3AEF43D00DD2724B00ECEAC9 /* EyeMonitoredRepository.m in Sources */,
+				3AEF44090DD27CE500ECEAC9 /* EyeMonitored.m in Sources */,
+				3AEF440C0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -121,8 +209,11 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = eyed;
@@ -135,7 +226,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = prefix.pch;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = eyed;
 			};

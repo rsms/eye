@@ -1,0 +1,37 @@
+#ifndef MACROS_H
+#define MACROS_H
+
+#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
+
+#if DEBUG
+  #define IFDEBUG(x) x
+#else
+  #define IFDEBUG(x)
+  #define log_debug(fmt, ...) ((void)0)
+#endif
+
+#ifdef __OBJC__
+  #import <Cocoa/Cocoa.h>
+  #import "constants.h"
+#endif
+
+// Logging
+#ifdef __OBJC__
+  #define log_error(fmt, ...) NSLog(@"E %s:%-3d in %s: " fmt, __FILENAME__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+  #define log_warn(fmt, ...)  NSLog(@"W %s:%-3d in %s: " fmt, __FILENAME__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+  #define log_info(fmt, ...)  NSLog(@"I %s:%-3d in %s: " fmt, __FILENAME__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+  #ifdef DEBUG
+    // [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String]
+    #define log_debug(fmt, ...) NSLog(@"D %s:%-3d in %s: " fmt, __FILENAME__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+  #endif
+#else
+  // C/C++
+  #define log_error(fmt, ...)   fprintf(stderr, "E %s:%-3d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+  #define log_warn(fmt, ...)    fprintf(stderr, "W %s:%-3d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+  #define log_info(fmt, ...)    fprintf(stderr, "I %s:%-3d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+  #if DEBUG
+    #define log_debug(fmt, ...) fprintf(stderr, "D %s:%-3d in %s: " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+  #endif
+#endif
+
+#endif
