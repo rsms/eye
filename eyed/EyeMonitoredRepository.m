@@ -18,14 +18,38 @@
 }
 
 
-// xxx: todo: hg commit etc...
+#pragma mark -
+#pragma mark Synchronizing
+
+- (void)synchronize {
+  char cmd_buf[PATH_MAX*2];
+  static char cmd_hgst[] = "/usr/local/bin/hg -v -y --cwd '%s' ci -A -m eyed:auto";
+  
+  cmd_buf[0] = 0;
+  snprintf(cmd_buf, PATH_MAX*2, cmd_hgst, [self.path UTF8String]);
+  log_debug(@"%@ system(\"%s\")", self, cmd_buf);
+  int pstat = system(cmd_buf);
+  log_debug(@"%@ system() returned %d", self, pstat);
+}
+
 
 #pragma mark -
 #pragma mark Monitoring
 
-- (void)pathDidChange:(NSNotification *)n {
-  log_debug(@"Yay! n = %@", n);
-  assert([n object] == self);
+- (void)monitoredDidChange:(NSNotification *)n {
+  if ([n object] != self) {
+    log_warn(@"Unexpected notification received destined for someone else. (object = %@)", [n object]);
+    return;
+  }
+  
+  NSDictionary *info = [n userInfo];
+  
+  log_debug(@"Synchronizing %@ based on:\n  path      = %@\n  recursive = %@",
+            self,
+            [info objectForKey:@"path"],
+            [(NSNumber *)[info objectForKey:@"recursive"] boolValue] ? @"YES" : @"NO");
+  
+  [self synchronize];
 }
 
 

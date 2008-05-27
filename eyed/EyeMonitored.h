@@ -28,6 +28,6 @@
 - (void)startMonitoring;
 - (void)stopMonitoring;
 - (void)restartMonitoring;
-- (void)pathDidChange:(NSNotification *)n; // Called whenever something has changed
+- (void)monitoredDidChange:(NSNotification *)n; // Called whenever something has changed
 
 @end

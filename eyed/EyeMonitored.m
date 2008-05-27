@@ -37,7 +37,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
     
     event_id = event_ids[i];
     
-    log_debug(@"Processing event %llx (%d of %d) \"%@\"", event_id, i+1, num_events, path);
+    log_debug(@"Dispatching event %llx (%d of %d) \"%@\"", event_id, i+1, num_events, path);
     
     if (event_masks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
       log_debug(@"MustScanSubDirs flag set -- performing a full rescan");
@@ -65,7 +65,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
                           nil];
     
     // Dispatch
-    [[NSNotificationCenter defaultCenter] postNotificationName:EyePathDidChangeNotification
+    [[NSNotificationCenter defaultCenter] postNotificationName:EyeMonitoredDidChangeNotification
                                                         object:monitored
                                                       userInfo:info];
   }
@@ -104,8 +104,8 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
   
   [nc addObserver:self
-         selector:@selector(pathDidChange:)
-             name:EyePathDidChangeNotification
+         selector:@selector(monitoredDidChange:)
+             name:EyeMonitoredDidChangeNotification
            object:self];
   
   return self;
@@ -196,7 +196,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 }
 
 
-- (void)pathDidChange:(NSNotification *)n {
+- (void)monitoredDidChange:(NSNotification *)n {
   // Override in subclasses
 }
 

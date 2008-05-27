@@ -123,7 +123,7 @@ static EyeMonitoredConfiguration *_default = nil;
 
 
 // xxx: todo: reload configuration on change
-- (void)pathDidChange:(NSNotification *)n {
+- (void)monitoredDidChange:(NSNotification *)n {
   if ([n object] != self) {
     log_warn(@"Unexpected notification received destined for someone else. object = %@", [n object]);
     return;
