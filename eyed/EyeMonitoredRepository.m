@@ -21,12 +21,20 @@
 #pragma mark -
 #pragma mark Synchronizing
 
-- (void)synchronize {
+- (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive {
   char cmd_buf[PATH_MAX*2];
   static char cmd_hgst[] = "/usr/local/bin/hg -v -y --cwd '%s' ci -A -m eyed:auto";
   
+  log_debug(@"Synchronizing %@ based on:\n  path      = %@\n  recursive = %@",
+            self,
+            path,
+            recursive ? @"YES" : @"NO");
+  
+  // xxx: redo this using NSTask
+  // xxx: cache <key path> => <value mtime> and only run this if path has changed.
+  
   cmd_buf[0] = 0;
-  snprintf(cmd_buf, PATH_MAX*2, cmd_hgst, [self.path UTF8String]);
+  snprintf(cmd_buf, PATH_MAX*2, cmd_hgst, [path UTF8String]);
   log_debug(@"%@ system(\"%s\")", self, cmd_buf);
   int pstat = system(cmd_buf);
   log_debug(@"%@ system() returned %d", self, pstat);
@@ -37,19 +45,20 @@
 #pragma mark Monitoring
 
 - (void)monitoredDidChange:(NSNotification *)n {
+  NSString *path;
+  NSDictionary *info;
+  BOOL recursive;
+  
   if ([n object] != self) {
     log_warn(@"Unexpected notification received destined for someone else. (object = %@)", [n object]);
     return;
   }
   
-  NSDictionary *info = [n userInfo];
+  info = [n userInfo];
+  path = [info objectForKey:@"path"];
+  recursive = [(NSNumber *)[info objectForKey:@"recursive"] boolValue];
   
-  log_debug(@"Synchronizing %@ based on:\n  path      = %@\n  recursive = %@",
-            self,
-            [info objectForKey:@"path"],
-            [(NSNumber *)[info objectForKey:@"recursive"] boolValue] ? @"YES" : @"NO");
-  
-  [self synchronize];
+  [self synchronizePath:path recursive:recursive];
 }
 
 

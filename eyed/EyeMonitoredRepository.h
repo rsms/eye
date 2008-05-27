@@ -10,6 +10,6 @@
 - (id)initWithIdentifier:(NSString *)identifier configuration:(NSMutableDictionary *)plist;
 
 #pragma mark Synchronizing
-- (void)synchronize;
+- (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive;
 
 @end

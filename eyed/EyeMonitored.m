@@ -168,12 +168,12 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 
 - (void)startMonitoring {
   if (!self.enabled) {
-    log_debug(@"%@ is not enabled. Will not start.", self);
+    //log_debug(@"%@ is not enabled. Will not start.", self);
     return;
   }
   
   if (monitored) {
-    log_debug(@"%@ is already being monitored. Will not start.", self);
+    //log_debug(@"%@ is already being monitored. Will not start.", self);
     return;
   }
   
@@ -238,8 +238,19 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 }
 
 - (void)setConfiguration:(NSMutableDictionary *)plist {
-  configuration = plist;
-  [self restartMonitoring];
+  if (![plist isEqualToDictionary:configuration]) {
+    log_info(@"Configuration changed for %@", self);
+#ifdef DEBUG
+    log_debug(@"Configuration diff for %@\nprevious = %@\nnew = %@",
+              self, configuration, plist);
+#endif
+    configuration = plist;
+    [self restartMonitoring];
+  }
+  else {
+    // We need to set it either way, as the dict itself might be another object.
+    configuration = plist;
+  }
 }
 
 

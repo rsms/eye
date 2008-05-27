@@ -77,17 +77,23 @@ static EyeMonitoredConfiguration *_default = nil;
 }
 
 
+- (NSString *)repositoryIdentifierForConfigurationAtPath:(NSString *)path {
+  return [[path stringByAbbreviatingWithTildeInPath] stringByDeletingPathExtension];
+}
+
+
 - (void)reloadRepositories {
   NSDirectoryEnumerator *configEnumerator = [[NSFileManager defaultManager] enumeratorAtPath:self.path];
-  NSString *path;
+  NSString *path, *identifier;
+  NSMutableDictionary *plist;
   
   for (NSString *filename in configEnumerator) {
     if ([[filename pathExtension] caseInsensitiveCompare:@"plist"] == 0) {
-      path = filename;
+      path = [[self.path stringByAppendingString:@"/"] stringByAppendingString:filename];
       @try {
-        path = [[self.path stringByAppendingString:@"/"] stringByAppendingString:filename];
-        NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:path];
-        [self reloadRepository:path usingConfiguration:plist];
+        identifier = [self repositoryIdentifierForConfigurationAtPath:path];
+        plist = [NSMutableDictionary dictionaryWithContentsOfFile:path];
+        [self reloadRepository:identifier usingConfiguration:plist];
       }
       @catch (NSException * e) {
         log_error(@"Failed to activate configuration %@. %@: %@", path, [e name], [e description]);
