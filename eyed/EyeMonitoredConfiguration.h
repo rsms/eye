@@ -1,7 +1,7 @@
 #import "EyeMonitored.h"
 
 @interface EyeMonitoredConfiguration : EyeMonitored {
-  NSMutableDictionary *repositories; /// EyeMonitoredRepository keyed by it's path
+  NSMutableDictionary *repositories; /// EyeMonitoredRepository keyed by it's id (filename)
 }
 
 @property(assign) NSMutableDictionary *repositories;
@@ -15,6 +15,6 @@
 #pragma mark Loading configuration
 - (void)reload;
 - (void)reloadRepositories;
-- (void)reloadRepositoryUsingConfiguration:(NSMutableDictionary *)plist;  
+- (void)reloadRepository:(NSString *)identifier usingConfiguration:(NSMutableDictionary *)plist;
 
 @end

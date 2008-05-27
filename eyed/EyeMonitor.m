@@ -24,10 +24,17 @@ static EyeMonitor *_default = nil;
 
 
 - (void)run {
+  log_info(@"Loading configuration");
   [configuration reload];
+  
+  // Activate auto-reloading of configurations
+  [configuration startMonitoring];
+  
+  log_info(@"Registering repositories");
   NSEnumerator *en = [configuration.repositories objectEnumerator];
   for (EyeMonitoredRepository *repo in en)
     [repo startMonitoring];
+  
   log_info(@"Entering runloop");
   [[NSRunLoop mainRunLoop] run];
 }

@@ -1,5 +1,82 @@
 #import "EyeMonitored.h"
 #import "EyeException.h"
+#import "NSError+EyeAdditions.h"
+
+
+// All fsevents are handled through this function which dispatches objc messages
+static void _fsevents_callback(FSEventStreamRef streamRef,
+                               void *obj,
+                               size_t num_events,
+                               const char *const event_paths[],
+                               const FSEventStreamEventFlags *event_masks,
+                               const FSEventStreamEventId event_ids[])
+{
+  FSEventStreamEventId event_id;
+  EyeMonitored *monitored = nil;
+  NSString *path = nil;
+  int recursive = 0;
+  
+  if (!obj) {
+    log_error(@"_fsevents_callback() called with NULL obj");
+    return;
+  }
+  
+  monitored = (EyeMonitored *)obj;
+  
+  log_debug(@"streamRef = %p, num_events = %ld", streamRef, num_events);
+  
+  // For each event, dispatch a notification
+  for (size_t i=0; i < num_events; i++) {
+    path = [NSString stringWithUTF8String:event_paths[i]];
+    
+    // Skip .hg dirs
+    if (strstr(event_paths[i], "/.hg")) {
+      log_debug(@"Skipped change to .hg directory");
+      continue;
+    }
+    
+    event_id = event_ids[i];
+    
+    log_debug(@"Processing event %llx (%d of %d) \"%@\"", event_id, i+1, num_events, path);
+    
+    if (event_masks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
+      log_debug(@"MustScanSubDirs flag set -- performing a full rescan");
+      recursive = 1;
+    }
+    else if (event_masks[i] & kFSEventStreamEventFlagUserDropped) {
+      log_warn(@"We dropped events -- forcing a full rescan");
+      recursive = 1;
+    }
+    else if (event_masks[i] & kFSEventStreamEventFlagKernelDropped) {
+      log_warn(@"Kernel dropped events -- forcing a full rescan");
+      recursive = 1;
+    }
+    
+    // Set to base path if recursive
+    if (recursive)
+      path = monitored.path;
+    
+    // Construct event info
+    NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:
+                          path,                                     @"path",
+                          [NSNumber numberWithLongLong:event_id],   @"id",
+                          [NSNumber numberWithLong:event_masks[i]], @"mask",
+                          [NSNumber numberWithBool:recursive],      @"recursive",
+                          nil];
+    
+    // Dispatch
+    [[NSNotificationCenter defaultCenter] postNotificationName:EyePathDidChangeNotification
+                                                        object:monitored
+                                                      userInfo:info];
+  }
+}
+
+
+
+@interface EyeMonitored (Private)
+- (id)_init;
+@end
+
 
 @implementation EyeMonitored
 
@@ -8,26 +85,80 @@
 
 + (void)validateConfiguration:(NSDictionary *)plist {
   if([plist objectForKey:@"path"] == nil)
-    [EyeException raise:@"Missing path key in configuration"];
+    [EyeException raise:@"Monitored configuration validation failed: Missing path key in configuration"];
 }
 
 
 #pragma mark -
 #pragma mark Initializing
 
-- (id)initWithConfiguration:(NSMutableDictionary *)plist {
+- (id)_init {
   if (!(self = [super init]))
     return nil;
-  self.configuration = plist;
+  
+  // Initialize members
+  streamRef = nil;
+  configuration = nil;
+  
+  // Register for notifications
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  
+  [nc addObserver:self
+         selector:@selector(pathDidChange:)
+             name:EyePathDidChangeNotification
+           object:self];
+  
+  return self;
+}
+
+
+- (id)initWithConfiguration:(NSMutableDictionary *)plist {
+  if (![self _init])
+    return nil;
+  configuration = plist;
   return self;
 }
 
 
 - (id)init {
-  if (!(self = [super init]))
+  if (![self _init])
     return nil;
-  self.configuration = [NSMutableDictionary dictionary];
+  configuration = [NSMutableDictionary dictionary];
   return self;
+}
+
+
+#pragma mark -
+#pragma mark Managing FSEventStreams
+
+
+- (void)createFSEventStreamForPaths:(NSArray *)paths {
+  FSEventStreamEventId since_when = kFSEventStreamEventIdSinceNow;
+  FSEventStreamContext context = {0, (void *)self, NULL, NULL, NULL};
+  FSEventStreamEventFlags flags = 0;
+  
+  streamRef = FSEventStreamCreate(kCFAllocatorDefault,
+                                  (FSEventStreamCallback)&_fsevents_callback,
+                                  &context,
+                                  (CFArrayRef)paths,
+                                  since_when,
+                                  self.latency,
+                                  flags);
+  
+  if (NULL == streamRef)
+    [EyeException raise:@"FSEventStreamCreate(7) failed"];
+  
+  // Print the setup
+  log_info(@"Created stream %p", streamRef);
+  IFDEBUG(FSEventStreamShow(streamRef));
+}
+
+
+- (void)destroyFSEventStream {
+  assert(streamRef != NULL);
+  FSEventStreamInvalidate(streamRef);
+  FSEventStreamRelease(streamRef);
+  streamRef = NULL;
 }
 
 
@@ -36,37 +167,67 @@
 
 
 - (void)startMonitoring {
-  if (!self.enabled)
+  if (!self.enabled) {
+    log_debug(@"%@ is not enabled. Will not start.", self);
     return;
-  if (monitored)
-    [EyeException raise:@"%@ is already being monitored", self];
+  }
+  
+  if (monitored) {
+    log_debug(@"%@ is already being monitored. Will not start.", self);
+    return;
+  }
   
   // Normalize path
   self.path = [self.path stringByStandardizingPath];
   
-  // do...
+  log_info(@"Starting %@", self);
+  
+  // Create FSEventStream
+  [self createFSEventStreamForPaths:[NSArray arrayWithObject:self.path]];
+  
+  // Schedule it on a runloop
+  FSEventStreamScheduleWithRunLoop(streamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+  
+  // Start it
+  if (!FSEventStreamStart(streamRef))
+    [EyeException raise:@"FSEventStreamStart(streamRef) failed"];
+  
+  monitored = YES;
+}
+
+
+- (void)pathDidChange:(NSNotification *)n {
+  // Override in subclasses
 }
 
 
 - (void)stopMonitoring {
-  if (!monitored)
+  if (!monitored) {
+    log_debug(@"%@ askwed to stop but is not monitored! Simply returning without doing anything.", self);
     return;
+  }
   
-  // do...
+  assert(streamRef != NULL);
+  
+  log_info(@"Stopping %@", self);
+  FSEventStreamStop(streamRef);
+  [self destroyFSEventStream];
+  
+  monitored = NO;
 }
 
 
 - (void)restartMonitoring {
-  if (!self.enabled || !monitored)
-    return;
+  if (self.monitored)
+    [self stopMonitoring];
   
-  [self stopMonitoring];
-  [self startMonitoring]; // start stream, based on current configuration.
+  if (self.enabled)
+    [self startMonitoring];
 }
 
 
 #pragma mark -
-#pragma mark Properties
+#pragma mark Accessing attributes
 
 
 @synthesize monitored;
@@ -108,6 +269,15 @@
 
 - (void)setLatency:(CFAbsoluteTime)latency {
   return [configuration setObject:[NSNumber numberWithDouble:(double)latency] forKey:@"latency"];
+}
+
+// to string
+- (NSString *)description {
+  return [NSString stringWithFormat: @"<%@: %@ \"%@\" @%p>",
+          NSStringFromClass(isa),
+          self.enabled ? @"enabled" : @"disabled",
+          self.path,
+          self];
 }
 
 
