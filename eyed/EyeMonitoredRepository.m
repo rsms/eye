@@ -1,4 +1,5 @@
 #import "EyeMonitoredRepository.h"
+#import "NSTask+EyeAdditions.h"
 
 @implementation EyeMonitoredRepository
 
@@ -13,6 +14,7 @@
     return nil;
   
   identifier = ident;
+  sync_task = nil;
   
   return self;
 }
@@ -22,22 +24,90 @@
 #pragma mark Synchronizing
 
 - (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive {
-  char cmd_buf[PATH_MAX*2];
-  static char cmd_hgst[] = "/usr/local/bin/hg -v -y --cwd '%s' ci -A -m eyed:auto";
+  NSFileManager *fm;
+  NSDate *pathMTime, *dothgMTime;
   
-  log_debug(@"Synchronizing %@ based on:\n  path      = %@\n  recursive = %@",
-            self,
-            path,
-            recursive ? @"YES" : @"NO");
+  if (sync_task != nil) {
+    log_warn("Synchronization of %s requested, "
+             "but the repository is currently being processed by [%d]",
+             [path UTF8String], [sync_task processIdentifier]);
+    return;
+  }
   
-  // xxx: redo this using NSTask
-  // xxx: cache <key path> => <value mtime> and only run this if path has changed.
+  // Check content modification time
+  fm = [NSFileManager defaultManager];
+  #define MTIME(_pth) [[fm fileAttributesAtPath:_pth traverseLink:YES] objectForKey:NSFileModificationDate]
+  pathMTime = MTIME(path);
+  dothgMTime = MTIME([self.path stringByAppendingPathComponent:@".hg"]);
+  //log_debug(@"mtime:path=%@, mtime:basedir/.hg=%@",pathMTime,dothgMTime);
   
-  cmd_buf[0] = 0;
-  snprintf(cmd_buf, PATH_MAX*2, cmd_hgst, [path UTF8String]);
-  log_debug(@"%@ system(\"%s\")", self, cmd_buf);
-  int pstat = system(cmd_buf);
-  log_debug(@"%@ system() returned %d", self, pstat);
+  // Abort if no data was modified
+  if ([pathMTime compare:dothgMTime] != NSOrderedDescending) {
+    //log_debug(@"Path not modified (mtime(path) <= mtime(basedir/.hg))");
+    return;
+  }
+  
+  // Check content mtime
+  // Removed: when copying a file and preserving it's modification date, this will fail.
+  /*contentMTime = [NSDate distantPast];
+  for (NSString *fn in [fm enumeratorAtPath:path]) {
+    if ( ! [fn isEqualToString:@".DS_Store"]) {
+      contentMTime = [contentMTime laterDate:MTIME([path stringByAppendingPathComponent:fn])];
+    }
+  }
+  log_debug(@"contentMTime=%@", contentMTime);
+  
+  // Abort if the change was due to a file or directory we do not care about
+  if ([contentMTime compare:dothgMTime] != NSOrderedDescending) {
+    log_debug(@"Contents not modified (mtime(contents) <= mtime(basedir/.hg))");
+    return;
+  }*/
+  
+  #undef MTIME
+  
+  // Looks like a valid change -- keep going
+  log_debug("Synchronizing %s (path=%s, recursive=%s)",
+            [[self description] UTF8String],
+            [path UTF8String],
+            recursive ? "YES" : "NO");
+  
+  // Dispatch hg update process
+  sync_task = [[NSTask alloc] init];
+  [sync_task setLaunchPath:@"/usr/local/bin/hg"];
+  [sync_task setArguments:[NSArray arrayWithObjects:@"-v", @"-y", @"ci", @"-A", @"-m", @"eyed:auto", nil]];
+  [sync_task setCurrentDirectoryPath:path];
+  [sync_task setStandardOutput:[NSPipe pipe]];
+  [sync_task setStandardError:[NSPipe pipe]];
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(synchronizationTaskDidEnd:)
+                                               name:NSTaskDidTerminateNotification
+                                             object:sync_task];
+  [sync_task launch];
+}
+
+
+- (void)synchronizationTaskDidEnd:(NSNotification *)n {
+  assert([n object] == sync_task);
+  
+  // We have gotten our notification. As we create a new NSTask each time, and
+  // register for notifications to that specific object, we need to remove the
+  // observation (and later add a new one for another NSTask instance).
+  [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                  name:NSTaskDidTerminateNotification
+                                                object:sync_task];
+  
+  int status = [sync_task terminationStatus];
+  if (status == 0) {
+    log_notice("Synchronized %s", [self.path UTF8String]);
+    log_debug("sync message: %s", [[sync_task stringWithContentsOfStandardOutput] UTF8String]);
+  }
+  else {
+    log_err("Failed to synchronize %s -- %s\n%s", [self.path UTF8String],
+            [[sync_task stringWithContentsOfStandardError] UTF8String],
+            [[sync_task stringWithContentsOfStandardOutput] UTF8String]);
+  }
+  
+  sync_task = nil;
 }
 
 
@@ -50,7 +120,7 @@
   BOOL recursive;
   
   if ([n object] != self) {
-    log_warn(@"Unexpected notification received destined for someone else. (object = %@)", [n object]);
+    log_warn("Unexpected notification received, destined for someone else");
     return;
   }
   
@@ -60,7 +130,6 @@
   
   [self synchronizePath:path recursive:recursive];
 }
-
 
 #pragma mark -
 #pragma mark Accessing attributes

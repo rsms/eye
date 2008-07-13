@@ -1,5 +1,6 @@
 #import "EyeMonitor.h"
 #import "EyeMonitoredRepository.h"
+#import "EyeException.h"
 
 @implementation EyeMonitor
 
@@ -24,18 +25,18 @@ static EyeMonitor *_default = nil;
 
 
 - (void)run {
-  log_info(@"Loading configuration");
+  log_info("Loading configuration");
   [configuration reload];
   
   // Activate auto-reloading of configurations
   [configuration startMonitoring];
   
-  log_info(@"Registering repositories");
+  log_info("Registering repositories");
   NSEnumerator *en = [configuration.repositories objectEnumerator];
   for (EyeMonitoredRepository *repo in en)
     [repo startMonitoring];
   
-  log_info(@"Entering runloop");
+  log_info("Entering runloop");
   [[NSRunLoop mainRunLoop] run];
 }
 

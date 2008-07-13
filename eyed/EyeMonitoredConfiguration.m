@@ -72,7 +72,7 @@ static EyeMonitoredConfiguration *_default = nil;
 #pragma mark Reloading configurations
 
 - (void)reload {
-  log_info(@"Reloading configuration");
+  log_info("Reloading configuration");
   [self reloadRepositories];
 }
 
@@ -96,7 +96,8 @@ static EyeMonitoredConfiguration *_default = nil;
         [self reloadRepository:identifier usingConfiguration:plist];
       }
       @catch (NSException * e) {
-        log_error(@"Failed to activate configuration %@. %@: %@", path, [e name], [e description]);
+        log_err("Failed to activate configuration %s. %s: %s",
+                [path UTF8String], [[e name] UTF8String], [[e description] UTF8String]);
         [EyeException printStackTrace:e];
       }
     }
@@ -104,21 +105,22 @@ static EyeMonitoredConfiguration *_default = nil;
 }
 
 
-- (void)reloadRepository:(NSString *)identifier usingConfiguration:(NSMutableDictionary *)plist
-{
+- (void)reloadRepository:(NSString *)identifier usingConfiguration:(NSMutableDictionary *)plist {
   EyeMonitoredRepository *repo;
-  log_debug("identifier=%@ plist=%@", identifier, plist);
+  
+  log_debug("identifier=%s plist=%s",
+            [identifier UTF8String], [[plist description] UTF8String]);
   
   [EyeMonitored validateConfiguration:plist];
   
   if (!(repo = [repositories objectForKey:identifier])) {
-    log_debug(@"Creating new repository %@", identifier);
+    log_info("Setting up repository %s", [identifier UTF8String]);
     repo = [[EyeMonitoredRepository alloc] initWithIdentifier:identifier configuration:plist];
     [repositories setObject:repo forKey:identifier];
     [repo startMonitoring];
   }
   else {
-    log_debug(@"Reloading existing repository %@", identifier);
+    log_debug("Reloading repository %s", [identifier UTF8String]);
     repo.configuration = plist;
   }
 }
@@ -128,14 +130,9 @@ static EyeMonitoredConfiguration *_default = nil;
 #pragma mark Monitoring
 
 
-// xxx: todo: reload configuration on change
 - (void)monitoredDidChange:(NSNotification *)n {
-  if ([n object] != self) {
-    log_warn(@"Unexpected notification received destined for someone else. object = %@", [n object]);
-    return;
-  }
-  
-  [self reload];
+  assert([n object] == self);
+  [[n object] reload];
 }
 
 @end

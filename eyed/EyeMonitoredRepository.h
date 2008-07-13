@@ -2,6 +2,7 @@
 
 @interface EyeMonitoredRepository : EyeMonitored {
   NSString *identifier;
+  NSTask *sync_task;
 }
 
 @property(readonly) NSString *identifier;
@@ -11,5 +12,6 @@
 
 #pragma mark Synchronizing
 - (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive;
+- (void)synchronizationTaskDidEnd:(NSNotification *)n;
 
 @end

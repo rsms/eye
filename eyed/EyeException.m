@@ -21,24 +21,31 @@
 }
 
 
-+ (void)printStackTrace:(NSException *)e {
++ (NSString *)stackTrace:(NSException *)e {
   NSString *stack = [[e userInfo] objectForKey:NSStackTraceKey];
+  //static NSString *atos = @"/usr/bin/atos";
   if (stack) {
-    NSTask *ls = [[NSTask alloc] init];
-    NSString *pid = [[NSNumber numberWithInt:[[NSProcessInfo processInfo] processIdentifier]] stringValue];
-    NSMutableArray *args = [NSMutableArray arrayWithCapacity:20];
-    
-    [args addObject:@"-p"];
-    [args addObject:pid];
-    [args addObjectsFromArray:[stack componentsSeparatedByString:@"  "]];
-    // Note: function addresses are separated by double spaces, not a single space.
-    
-    [ls setLaunchPath:@"/usr/bin/atos"];
-    [ls setArguments:args];
-    [ls launch];
-    [ls release];
+    return [stack stringByReplacingOccurrencesOfString:@"  " withString:@"\n"];
+    /*if ([[NSFileManager defaultManager] fileExistsAtPath:atos]) {
+      NSTask *ls = [[NSTask alloc] init];
+      NSString *pid = [[NSNumber numberWithInt:[[NSProcessInfo processInfo] processIdentifier]] stringValue];
+      NSMutableArray *args = [NSMutableArray array];
+      [args addObject:@"-p"];
+      [args addObject:pid];
+      [args addObjectsFromArray:[stack componentsSeparatedByString:@"  "]]; // double spaces, not a single space.
+      [ls setLaunchPath:atos];
+      [ls setArguments:args];
+      [ls setStandardOutput:]
+      [ls launch];
+      [ls release];
+    }*/
   }
-  //else { NSLog(@"(No stack trace available)"); }
+  return nil;
+}
+
+
++ (void)printStackTrace:(NSException *)e {
+  NSLog(@"%@", [self stackTrace:e]);
 }
 
 

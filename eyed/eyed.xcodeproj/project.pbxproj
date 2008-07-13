@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A4F679E0E2A6E36002C19C2 /* NSTask+EyeAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F679D0E2A6E36002C19C2 /* NSTask+EyeAdditions.m */; };
+		3A4F67F60E2A7C90002C19C2 /* logging.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F67F50E2A7C90002C19C2 /* logging.c */; };
 		3A653B490DEB6DF100B15BE6 /* NSError+EyeAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A653B470DEB6DF100B15BE6 /* NSError+EyeAdditions.m */; };
 		3AEF422D0DD25E2C00ECEAC9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF422C0DD25E2C00ECEAC9 /* main.m */; };
 		3AEF430A0DD25F9500ECEAC9 /* EyeException.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AEF43090DD25F9500ECEAC9 /* EyeException.m */; };
@@ -36,6 +38,10 @@
 
 /* Begin PBXFileReference section */
 		097DBE83FE8419DDC02AAC07 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		3A4F679C0E2A6E36002C19C2 /* NSTask+EyeAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSTask+EyeAdditions.h"; sourceTree = "<group>"; };
+		3A4F679D0E2A6E36002C19C2 /* NSTask+EyeAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSTask+EyeAdditions.m"; sourceTree = "<group>"; };
+		3A4F67EF0E2A7935002C19C2 /* logging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logging.h; sourceTree = "<group>"; };
+		3A4F67F50E2A7C90002C19C2 /* logging.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = logging.c; sourceTree = "<group>"; };
 		3A653B470DEB6DF100B15BE6 /* NSError+EyeAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+EyeAdditions.m"; sourceTree = "<group>"; };
 		3A653B480DEB6DF100B15BE6 /* NSError+EyeAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+EyeAdditions.h"; sourceTree = "<group>"; };
 		3A9EB5750DCEE45B00A4BEC7 /* eyed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eyed.c; sourceTree = "<group>"; };
@@ -76,8 +82,7 @@
 		08FB7794FE84155DC02AAC07 /* eyed */ = {
 			isa = PBXGroup;
 			children = (
-				3AEF431C0DD263C200ECEAC9 /* Classes */,
-				3AEF43060DD25F4100ECEAC9 /* Source */,
+				3AEF431C0DD263C200ECEAC9 /* Source */,
 				3AEF43070DD25F6500ECEAC9 /* Other */,
 				3AEF424F0DD25F2E00ECEAC9 /* Frameworks */,
 				1A8B4A8EFE9D542A11CA2CBB /* Products */,
@@ -93,11 +98,25 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		3A4F67F80E2A7CB7002C19C2 /* Globals */ = {
+			isa = PBXGroup;
+			children = (
+				3AEF43170DD2606900ECEAC9 /* prefix.pch */,
+				3AEF431D0DD263F700ECEAC9 /* constants.h */,
+				3AEF431E0DD263F700ECEAC9 /* constants.m */,
+				3A4F67EF0E2A7935002C19C2 /* logging.h */,
+				3A4F67F50E2A7C90002C19C2 /* logging.c */,
+			);
+			name = Globals;
+			sourceTree = "<group>";
+		};
 		3A653B4A0DEB6DF700B15BE6 /* NS Additions */ = {
 			isa = PBXGroup;
 			children = (
 				3A653B480DEB6DF100B15BE6 /* NSError+EyeAdditions.h */,
 				3A653B470DEB6DF100B15BE6 /* NSError+EyeAdditions.m */,
+				3A4F679C0E2A6E36002C19C2 /* NSTask+EyeAdditions.h */,
+				3A4F679D0E2A6E36002C19C2 /* NSTask+EyeAdditions.m */,
 			);
 			name = "NS Additions";
 			sourceTree = "<group>";
@@ -112,37 +131,28 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3AEF43060DD25F4100ECEAC9 /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				3AEF422C0DD25E2C00ECEAC9 /* main.m */,
-				3AEF431D0DD263F700ECEAC9 /* constants.h */,
-				3AEF431E0DD263F700ECEAC9 /* constants.m */,
-				3A9EB5750DCEE45B00A4BEC7 /* eyed.c */,
-				3AEF43170DD2606900ECEAC9 /* prefix.pch */,
-			);
-			name = Source;
-			sourceTree = "<group>";
-		};
 		3AEF43070DD25F6500ECEAC9 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3A9EB5750DCEE45B00A4BEC7 /* eyed.c */,
 				C6859E9D0290929804C91782 /* eyed.1 */,
 			);
 			name = Other;
 			sourceTree = "<group>";
 		};
-		3AEF431C0DD263C200ECEAC9 /* Classes */ = {
+		3AEF431C0DD263C200ECEAC9 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				3A4F67F80E2A7CB7002C19C2 /* Globals */,
 				3A653B4A0DEB6DF700B15BE6 /* NS Additions */,
 				3AEF44180DD27E3200ECEAC9 /* Monitored */,
 				3AEF43190DD262A800ECEAC9 /* EyeMonitor.h */,
 				3AEF431A0DD262A800ECEAC9 /* EyeMonitor.m */,
 				3AEF43080DD25F9500ECEAC9 /* EyeException.h */,
 				3AEF43090DD25F9500ECEAC9 /* EyeException.m */,
+				3AEF422C0DD25E2C00ECEAC9 /* main.m */,
 			);
-			name = Classes;
+			name = Source;
 			sourceTree = "<group>";
 		};
 		3AEF44180DD27E3200ECEAC9 /* Monitored */ = {
@@ -209,6 +219,8 @@
 				3AEF44090DD27CE500ECEAC9 /* EyeMonitored.m in Sources */,
 				3AEF440C0DD27DD100ECEAC9 /* EyeMonitoredConfiguration.m in Sources */,
 				3A653B490DEB6DF100B15BE6 /* NSError+EyeAdditions.m in Sources */,
+				3A4F679E0E2A6E36002C19C2 /* NSTask+EyeAdditions.m in Sources */,
+				3A4F67F60E2A7C90002C19C2 /* logging.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

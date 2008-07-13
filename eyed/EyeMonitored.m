@@ -17,13 +17,13 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   int recursive = 0;
   
   if (!obj) {
-    log_error(@"_fsevents_callback() called with NULL obj");
+    log_crit("_fsevents_callback() called with NULL obj");
     return;
   }
   
   monitored = (EyeMonitored *)obj;
   
-  log_debug(@"streamRef = %p, num_events = %ld", streamRef, num_events);
+  log_debug("streamRef = %p, num_events = %ld", streamRef, num_events);
   
   // For each event, dispatch a notification
   for (size_t i=0; i < num_events; i++) {
@@ -31,24 +31,24 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
     
     // Skip .hg dirs
     if (strstr(event_paths[i], "/.hg")) {
-      log_debug(@"Skipped change to .hg directory");
+      log_info("Skipped change to .hg directory");
       continue;
     }
     
     event_id = event_ids[i];
     
-    log_debug(@"Dispatching event %llx (%d of %d) \"%@\"", event_id, i+1, num_events, path);
+    log_info("Dispatching event %llx (%d of %d) \"%s\"", event_id, i+1, num_events, [path UTF8String]);
     
     if (event_masks[i] & kFSEventStreamEventFlagMustScanSubDirs) {
-      log_debug(@"MustScanSubDirs flag set -- performing a full rescan");
+      log_debug("MustScanSubDirs flag set -- performing a full rescan");
       recursive = 1;
     }
     else if (event_masks[i] & kFSEventStreamEventFlagUserDropped) {
-      log_warn(@"We dropped events -- forcing a full rescan");
+      log_warn("We dropped events -- forcing a full rescan");
       recursive = 1;
     }
     else if (event_masks[i] & kFSEventStreamEventFlagKernelDropped) {
-      log_warn(@"Kernel dropped events -- forcing a full rescan");
+      log_warn("Kernel dropped events -- forcing a full rescan");
       recursive = 1;
     }
     
@@ -149,7 +149,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
     [EyeException raise:@"FSEventStreamCreate(7) failed"];
   
   // Print the setup
-  log_info(@"Created stream %p", streamRef);
+  log_info("Created stream %p", streamRef);
   IFDEBUG(FSEventStreamShow(streamRef));
 }
 
@@ -180,7 +180,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   // Normalize path
   self.path = [self.path stringByStandardizingPath];
   
-  log_info(@"Starting %@", self);
+  log_notice("Starting %s", [[self description] UTF8String]);
   
   // Create FSEventStream
   [self createFSEventStreamForPaths:[NSArray arrayWithObject:self.path]];
@@ -203,13 +203,14 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 
 - (void)stopMonitoring {
   if (!monitored) {
-    log_debug(@"%@ askwed to stop but is not monitored! Simply returning without doing anything.", self);
+    log_info("%s was asked to stop, but is not monitored. Not taking any action.",
+             [[self description] UTF8String]);
     return;
   }
   
   assert(streamRef != NULL);
   
-  log_info(@"Stopping %@", self);
+  log_info("Stopping %s", [[self description] UTF8String]);
   FSEventStreamStop(streamRef);
   [self destroyFSEventStream];
   
@@ -239,10 +240,14 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 
 - (void)setConfiguration:(NSMutableDictionary *)plist {
   if (![plist isEqualToDictionary:configuration]) {
-    log_info(@"Configuration changed for %@", self);
+    log_notice("Configuration changed for %s", [[self description] UTF8String]);
 #ifdef DEBUG
-    log_debug(@"Configuration diff for %@\nprevious = %@\nnew = %@",
-              self, configuration, plist);
+    log_debug("Configuration diff for %s\n"
+              "previous = %s\n"
+              "new = %s",
+              [[self description] UTF8String],
+              [[configuration description] UTF8String],
+              [[plist description] UTF8String]);
 #endif
     configuration = plist;
     [self restartMonitoring];
