@@ -19,6 +19,8 @@ static void usage(const char* prog) {
           "usage: %s [options]\n"
           "Options:\n"
           "  -d/--log-debug   Enable sending INFO and DEBUG messages to syslogd.\n"
+          "                   If not run as root, remote filters will probably cause\n"
+          "                   info and debug messages not to be logged anyway.\n"
           "  -h/--help        Print this help message and exit.\n"
           "  -l/--log-local   Like --log-stderr but also disables logging to syslogd.\n"
           "  -s/--log-stderr  Print log messages to stderr.\n"
@@ -43,6 +45,7 @@ int main (int argc, char * const *argv) {
   while ((ch = getopt_long(argc, argv, "dhls", longopts, NULL)) != -1) switch (ch) {
     case 'd':
       asl_send_level = ASL_LEVEL_DEBUG;
+      asl_client_opts |= ASL_OPT_NO_REMOTE; // only works if euid==root
       break;
     case 'l':
       asl_send_level = -1;
