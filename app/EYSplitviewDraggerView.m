@@ -1,12 +1,12 @@
-#import "EYSplitpaneControl.h"
+#import "EYSplitviewDraggerView.h"
 
-@implementation EYSplitpaneControl
+@implementation EYSplitviewDraggerView
 
 - (id)initWithFrame:(NSRect)frame {
   self = [super initWithFrame:frame];
   if (self) {
     NSRect fr = [self frame];
-    [self setFrame:NSMakeRect(ceil(fr.origin.x), ceil(fr.origin.y), ceil(fr.size.width), ceil(fr.size.height))];
+    [self setFrame:NSMakeRect(round(fr.origin.x), round(fr.origin.y), round(fr.size.width), round(fr.size.height))];
   }
   return self;
 }
