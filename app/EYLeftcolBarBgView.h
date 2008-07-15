@@ -1,0 +1,4 @@
+@interface EYLeftcolBarBgView : NSView {
+}
+
+@end

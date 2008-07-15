@@ -1,0 +1,5 @@
+@interface EYMainSplitviewDelegate : NSObject {
+
+}
+
+@end
