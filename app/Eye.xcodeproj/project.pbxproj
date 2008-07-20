@@ -17,6 +17,10 @@
 		3A1FCED60E2BE234002E5A58 /* EYMainSplitviewDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A1FCED40E2BE234002E5A58 /* EYMainSplitviewDelegate.m */; };
 		3A1FCEDD0E2BE4CD002E5A58 /* EYReposListDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A1FCEDC0E2BE4CD002E5A58 /* EYReposListDataSource.m */; };
 		3A1FCF880E2D2643002E5A58 /* repo_icon_small.png in Resources */ = {isa = PBXBuildFile; fileRef = 3A1FCF870E2D2643002E5A58 /* repo_icon_small.png */; };
+		3AE71A940E33687F0023DCFE /* repo_icon_small_disabled.png in Resources */ = {isa = PBXBuildFile; fileRef = 3AE71A930E33687F0023DCFE /* repo_icon_small_disabled.png */; };
+		3AE71ABD0E336E390023DCFE /* EYError.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE71ABC0E336E390023DCFE /* EYError.m */; };
+		3AE71ADC0E3371B70023DCFE /* EYRepository.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE71ADB0E3371B70023DCFE /* EYRepository.m */; };
+		3AE71BA30E3388FD0023DCFE /* eye.icns in Resources */ = {isa = PBXBuildFile; fileRef = 3AE71BA20E3388FD0023DCFE /* eye.icns */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -44,6 +48,12 @@
 		3A1FCEDB0E2BE4CD002E5A58 /* EYReposListDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EYReposListDataSource.h; sourceTree = "<group>"; };
 		3A1FCEDC0E2BE4CD002E5A58 /* EYReposListDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EYReposListDataSource.m; sourceTree = "<group>"; };
 		3A1FCF870E2D2643002E5A58 /* repo_icon_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = repo_icon_small.png; sourceTree = "<group>"; };
+		3AE71A930E33687F0023DCFE /* repo_icon_small_disabled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = repo_icon_small_disabled.png; sourceTree = "<group>"; };
+		3AE71ABB0E336E390023DCFE /* EYError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EYError.h; sourceTree = "<group>"; };
+		3AE71ABC0E336E390023DCFE /* EYError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EYError.m; sourceTree = "<group>"; };
+		3AE71ADA0E3371B70023DCFE /* EYRepository.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EYRepository.h; sourceTree = "<group>"; };
+		3AE71ADB0E3371B70023DCFE /* EYRepository.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EYRepository.m; sourceTree = "<group>"; };
+		3AE71BA20E3388FD0023DCFE /* eye.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = eye.icns; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Eye.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Eye.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -63,6 +73,10 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				3AE71ADA0E3371B70023DCFE /* EYRepository.h */,
+				3AE71ADB0E3371B70023DCFE /* EYRepository.m */,
+				3AE71ABB0E336E390023DCFE /* EYError.h */,
+				3AE71ABC0E336E390023DCFE /* EYError.m */,
 				3A1FCEA00E2BDABF002E5A58 /* EYLeftcolBarBgView.h */,
 				3A1FCEA10E2BDABF002E5A58 /* EYLeftcolBarBgView.m */,
 				3A1FCEB90E2BDF72002E5A58 /* EYSplitviewDraggerView.h */,
@@ -145,6 +159,8 @@
 		3A91744D0DEF17BB0083C504 /* resources */ = {
 			isa = PBXGroup;
 			children = (
+				3AE71BA20E3388FD0023DCFE /* eye.icns */,
+				3AE71A930E33687F0023DCFE /* repo_icon_small_disabled.png */,
 				3A1FCF870E2D2643002E5A58 /* repo_icon_small.png */,
 				3A1FCEBC0E2BDFA7002E5A58 /* splitpange_control_h.png */,
 				3A1FCEAF0E2BDD4B002E5A58 /* bar_add_down.png */,
@@ -204,6 +220,8 @@
 				3A1FCEB20E2BDD4B002E5A58 /* bar_add.png in Resources */,
 				3A1FCEBD0E2BDFA7002E5A58 /* splitpange_control_h.png in Resources */,
 				3A1FCF880E2D2643002E5A58 /* repo_icon_small.png in Resources */,
+				3AE71A940E33687F0023DCFE /* repo_icon_small_disabled.png in Resources */,
+				3AE71BA30E3388FD0023DCFE /* eye.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +237,8 @@
 				3A1FCEBB0E2BDF72002E5A58 /* EYSplitviewDraggerView.m in Sources */,
 				3A1FCED60E2BE234002E5A58 /* EYMainSplitviewDelegate.m in Sources */,
 				3A1FCEDD0E2BE4CD002E5A58 /* EYReposListDataSource.m in Sources */,
+				3AE71ABD0E336E390023DCFE /* EYError.m in Sources */,
+				3AE71ADC0E3371B70023DCFE /* EYRepository.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +271,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

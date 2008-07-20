@@ -31,6 +31,12 @@
   else if (v0frame.size.width < MIN_WIDTH)
     v0frame.size.width = MIN_WIDTH;
   [v0 setFrame:v0frame];
+  
+  NSView *v1 = [[splitview subviews] objectAtIndex:1];
+  NSRect v1frame = [v1 frame];
+  v1frame.size.height = [sender frame].size.height;
+  v1frame.size.width = [sender frame].size.width - v0frame.size.width;
+  [v1 setFrame:v1frame];
 }
 
 
