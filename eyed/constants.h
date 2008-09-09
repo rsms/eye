@@ -1,6 +1,6 @@
 
 #ifdef __OBJC__
-  extern NSString *kEyeDomain;
+  extern NSString *kEyedDomain;
 
   #pragma mark Notifications
   extern NSString *EyeMonitoredDidChangeNotification;

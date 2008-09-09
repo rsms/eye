@@ -17,7 +17,11 @@ static EyeMonitoredConfiguration *_default = nil;
     NSString *path;
     NSError *error = nil;
     
-    path = [@"~/Library/Application Support/Eyed/repositories" stringByExpandingTildeInPath];
+#ifdef DEBUG
+    path = [@"~/Library/Application Support/Eye-debug/repositories" stringByExpandingTildeInPath];
+#else
+    path = [@"~/Library/Application Support/Eye/repositories" stringByExpandingTildeInPath];
+#endif
     
     [[NSFileManager defaultManager] createDirectoryAtPath:path
                               withIntermediateDirectories:YES

@@ -1,5 +1,5 @@
 
-NSString *kEyeDomain = @"se.hunch.eye.monitor";
+NSString *kEyedDomain = @"se.hunch.eye.eyed";
 
 // Notifications
 NSString *EyeMonitoredDidChangeNotification = @"EyeMonitoredDidChangeNotification";
