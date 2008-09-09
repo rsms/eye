@@ -210,7 +210,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   
   assert(streamRef != NULL);
   
-  log_info("Stopping %s", [[self description] UTF8String]);
+  log_notice("Stopping %s", [[self description] UTF8String]);
   FSEventStreamStop(streamRef);
   [self destroyFSEventStream];
   

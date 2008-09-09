@@ -21,6 +21,16 @@
 
 
 #pragma mark -
+#pragma mark Monitoring
+
+
+- (void)startMonitoring {
+  [super startMonitoring];
+  [self synchronizePath:self.path recursive:YES];
+}
+
+
+#pragma mark -
 #pragma mark Synchronizing
 
 - (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive {
