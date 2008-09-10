@@ -2,6 +2,9 @@
 #import "EyeMonitoredRepository.h"
 #import "EyeException.h"
 
+#undef SRC_MODULE
+#define SRC_MODULE "config"
+
 @interface EyeMonitoredConfiguration (Private)
 - (void)_postInit;
 @end

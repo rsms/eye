@@ -12,6 +12,7 @@
 @property(assign) NSString *path;
 @property(assign) CFAbsoluteTime latency;
 @property(assign) BOOL enabled;
+@property(assign) NSString *name;
 
 
 #pragma mark Helpers

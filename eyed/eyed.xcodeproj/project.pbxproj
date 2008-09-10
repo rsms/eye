@@ -45,6 +45,7 @@
 		3A653B470DEB6DF100B15BE6 /* NSError+EyeAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+EyeAdditions.m"; sourceTree = "<group>"; };
 		3A653B480DEB6DF100B15BE6 /* NSError+EyeAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+EyeAdditions.h"; sourceTree = "<group>"; };
 		3A9EB5750DCEE45B00A4BEC7 /* eyed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eyed.c; sourceTree = "<group>"; };
+		3AB73D100E7869E3009A419E /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = macros.h; sourceTree = "<group>"; };
 		3AEF422C0DD25E2C00ECEAC9 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3AEF43080DD25F9500ECEAC9 /* EyeException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeException.h; sourceTree = "<group>"; };
 		3AEF43090DD25F9500ECEAC9 /* EyeException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeException.m; sourceTree = "<group>"; };
@@ -102,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				3AEF43170DD2606900ECEAC9 /* prefix.pch */,
+				3AB73D100E7869E3009A419E /* macros.h */,
 				3AEF431D0DD263F700ECEAC9 /* constants.h */,
 				3AEF431E0DD263F700ECEAC9 /* constants.m */,
 				3A4F67EF0E2A7935002C19C2 /* logging.h */,

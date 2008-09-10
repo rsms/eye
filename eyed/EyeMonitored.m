@@ -2,6 +2,8 @@
 #import "EyeException.h"
 #import "NSError+EyeAdditions.h"
 
+#undef SRC_MODULE
+#define SRC_MODULE "fsevent"
 
 // All fsevents are handled through this function which dispatches objc messages
 static void _fsevents_callback(FSEventStreamRef streamRef,
@@ -71,7 +73,8 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   }
 }
 
-
+#undef SRC_MODULE
+#define SRC_MODULE "monitored"
 
 @interface EyeMonitored (Private)
 - (id)_init;
@@ -265,6 +268,15 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
 
 - (void)setPath:(NSString *)path {
   return [configuration setObject:path forKey:@"path"];
+}
+
+
+- (NSString *)name {
+  return [configuration objectForKey:@"name"];
+}
+
+- (void)setName:(NSString *)name {
+  return [configuration setObject:name forKey:@"name"];
 }
 
 

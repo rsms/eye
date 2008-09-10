@@ -1,6 +1,16 @@
 #import "EyeMonitoredRepository.h"
 #import "NSTask+EyeAdditions.h"
 
+#undef SRC_MODULE
+#define SRC_MODULE "repo"
+
+@interface EyeMonitoredRepository (Private)
+- (NSTask *)_hgTask:(NSString *)path args:(NSArray *)args cb:(SEL)cb;
+- (NSTask *)_hgTaskCommit:(NSString *)path;
+- (NSTask *)_hgTaskInit:(NSString *)path;
+@end
+
+
 @implementation EyeMonitoredRepository
 
 @synthesize identifier;
@@ -46,53 +56,93 @@
   
   // Check content modification time
   fm = [NSFileManager defaultManager];
-  #define MTIME(_pth) [[fm fileAttributesAtPath:_pth traverseLink:YES] objectForKey:NSFileModificationDate]
-  pathMTime = MTIME(path);
-  dothgMTime = MTIME([self.path stringByAppendingPathComponent:@".hg"]);
-  //log_debug(@"mtime:path=%@, mtime:basedir/.hg=%@",pathMTime,dothgMTime);
+  
+  #define M(_pth) [[fm fileAttributesAtPath:_pth traverseLink:YES] objectForKey:NSFileModificationDate]
+  pathMTime = M(path);
+  dothgMTime = M([self.path stringByAppendingPathComponent:@".hg"]);
+  log_debug("mtime:path=%s, mtime:basedir/.hg=%s", obj2utf8(pathMTime), obj2utf8(dothgMTime));
+  #undef M
+  
+  // Repo directory does not exist 
+  if (pathMTime == NULL) {
+    log_warn("%s: directory \"%s\" does not exist -- idling", str2utf8(self.name), str2utf8(path));
+    return;
+  }
+  
+  // Repo is not initialized
+  if (dothgMTime == NULL) {
+    log_notice("%s: Not initialized -- starting initialization process", str2utf8(self.name), str2utf8(path));
+    sync_task = [self _hgTaskInit:path];
+    return;
+  }
   
   // Abort if no data was modified
   if ([pathMTime compare:dothgMTime] != NSOrderedDescending) {
-    //log_debug(@"Path not modified (mtime(path) <= mtime(basedir/.hg))");
+    log_info("%s: Path not modified (mtime(path) <= mtime(base_path/.hg)) -- skipping sync", [self.name UTF8String]);
     return;
   }
-  
-  // Check content mtime
-  // Removed: when copying a file and preserving it's modification date, this will fail.
-  /*contentMTime = [NSDate distantPast];
-  for (NSString *fn in [fm enumeratorAtPath:path]) {
-    if ( ! [fn isEqualToString:@".DS_Store"]) {
-      contentMTime = [contentMTime laterDate:MTIME([path stringByAppendingPathComponent:fn])];
-    }
-  }
-  log_debug(@"contentMTime=%@", contentMTime);
-  
-  // Abort if the change was due to a file or directory we do not care about
-  if ([contentMTime compare:dothgMTime] != NSOrderedDescending) {
-    log_debug(@"Contents not modified (mtime(contents) <= mtime(basedir/.hg))");
-    return;
-  }*/
-  
-  #undef MTIME
   
   // Looks like a valid change -- keep going
-  log_debug("Synchronizing %s (path=%s, recursive=%s)",
-            [[self description] UTF8String],
+  log_debug("%s: Synchronizing (path=%s, recursive=%s)",
+            [self.name UTF8String],
             [path UTF8String],
             recursive ? "YES" : "NO");
   
-  // Dispatch hg update process
-  sync_task = [[NSTask alloc] init];
-  [sync_task setLaunchPath:@"/usr/local/bin/hg"];
-  [sync_task setArguments:[NSArray arrayWithObjects:@"-v", @"-y", @"ci", @"-A", @"-m", @"eyed:auto", nil]];
-  [sync_task setCurrentDirectoryPath:path];
-  [sync_task setStandardOutput:[NSPipe pipe]];
-  [sync_task setStandardError:[NSPipe pipe]];
+  // XXX todo: Replace this so we can handle multiple concurrent syncs, 
+  //           but still detect and avoid per-repository sync race conditions.
+  
+  sync_task = [self _hgTaskCommit:path];
+}
+
+
+- (NSTask *)_hgTask:(NSString *)path args:(NSArray *)args cb:(SEL)cb {
+  NSTask *t = [[NSTask alloc] init];
+  [t setLaunchPath:@"/usr/local/bin/hg"];
+  [t setArguments:args];
+  [t setCurrentDirectoryPath:path];
+  [t setStandardOutput:[NSPipe pipe]];
+  [t setStandardError:[NSPipe pipe]];
   [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(synchronizationTaskDidEnd:)
+                                           selector:cb
                                                name:NSTaskDidTerminateNotification
-                                             object:sync_task];
-  [sync_task launch];
+                                             object:t];
+  [t launch];
+  return t;
+}
+
+
+- (NSTask *)_hgTaskInit:(NSString *)path {
+  return [self _hgTask:path
+                  args:[NSArray arrayWithObjects:/*@"-v",*/ @"-y", @"init", nil]
+                    cb:@selector(initializationTaskDidEnd:)];
+}
+
+
+- (NSTask *)_hgTaskCommit:(NSString *)path {
+  return [self _hgTask:path
+                  args:[NSArray arrayWithObjects:/*@"-v",*/ @"-y", @"ci", @"-A", @"-m", @"eyed:auto", nil]
+                    cb:@selector(synchronizationTaskDidEnd:)];
+}
+
+
+- (void)initializationTaskDidEnd:(NSNotification *)n {
+  int status = [sync_task terminationStatus];
+  
+  if (status == 0) {
+    [@".DS_Store\n" writeToFile:[self.path stringByAppendingPathComponent:@".hgignore"] atomically:YES];
+    log_info("%s: Wrote default .hgignore file", [self.name UTF8String]);
+    log_notice("Initialized %s (\"%s\") -- just need to sync one first time...", [self.name UTF8String], [self.path UTF8String]);
+    sync_task = [self _hgTaskCommit:self.path];
+  }
+  else {
+    log_err("Failed to initialize %s (\"%s\") -- hg exited %d: %s\n%s",
+            [self.name UTF8String],
+            [self.path UTF8String],
+            status,
+            [[sync_task stringWithContentsOfStandardError] UTF8String],
+            [[sync_task stringWithContentsOfStandardOutput] UTF8String]);
+    sync_task = nil;
+  }
 }
 
 
@@ -108,11 +158,14 @@
   
   int status = [sync_task terminationStatus];
   if (status == 0) {
-    log_notice("Synchronized %s", [self.path UTF8String]);
+    log_notice("Synchronized %s", [self.name UTF8String]);
     log_debug("sync message: %s", [[sync_task stringWithContentsOfStandardOutput] UTF8String]);
   }
   else {
-    log_err("Failed to synchronize %s -- %s\n%s", [self.path UTF8String],
+    log_err("Failed to synchronize %s (\"%s\") -- hg exited %d: %s\n%s",
+            [self.name UTF8String],
+            [self.path UTF8String],
+            status,
             [[sync_task stringWithContentsOfStandardError] UTF8String],
             [[sync_task stringWithContentsOfStandardOutput] UTF8String]);
   }
@@ -144,12 +197,19 @@
 #pragma mark -
 #pragma mark Accessing attributes
 
+- (NSString *)name {
+  id s = [super name];
+  if (s == NULL)
+    s = identifier;
+  return s;
+}
+
 // to string
 - (NSString *)description {
   return [NSString stringWithFormat: @"<%@: %@ \"%@\" @%p>",
           NSStringFromClass(isa),
           self.enabled ? @"enabled" : @"disabled",
-          self.identifier,
+          identifier,
           self];
 }
 

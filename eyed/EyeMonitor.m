@@ -2,6 +2,9 @@
 #import "EyeMonitoredRepository.h"
 #import "EyeException.h"
 
+#undef SRC_MODULE
+#define SRC_MODULE "monitor"
+
 @implementation EyeMonitor
 
 static EyeMonitor *_default = nil;

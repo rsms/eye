@@ -1,19 +1,7 @@
-#ifndef MACROS_H
-#define MACROS_H
-
-#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
-
-#if DEBUG
-  #define IFDEBUG(x) x
-#else
-  #define IFDEBUG(x)
-#endif
-
 #ifdef __OBJC__
   #import <Cocoa/Cocoa.h>
 #endif
 
+#import "macros.h"
 #import "constants.h"
 #import "logging.h"
-
-#endif

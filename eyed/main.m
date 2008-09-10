@@ -2,8 +2,10 @@
 #import "EyeMonitor.h"
 #import <getopt.h>
 
+#undef SRC_MODULE
+#define SRC_MODULE "main"
+
 static void _main_cleanup(void) {
-  log_info("Cleaning up (before exiting)...");
   asl_close(asl_client);
 }
 
