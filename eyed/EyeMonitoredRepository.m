@@ -96,8 +96,10 @@
 
 
 - (NSTask *)_hgTask:(NSString *)path args:(NSArray *)args cb:(SEL)cb {
+  static NSString *hg_bin = @"/usr/local/bin/hg";
+  log_notice("Dispatching process: %s %s", [hg_bin UTF8String], obj2utf8(args));
   NSTask *t = [[NSTask alloc] init];
-  [t setLaunchPath:@"/usr/local/bin/hg"];
+  [t setLaunchPath:hg_bin];
   [t setArguments:args];
   [t setCurrentDirectoryPath:path];
   [t setStandardOutput:[NSPipe pipe]];
@@ -129,7 +131,7 @@
   int status = [sync_task terminationStatus];
   
   if (status == 0) {
-    [@".DS_Store\n" writeToFile:[self.path stringByAppendingPathComponent:@".hgignore"] atomically:YES];
+    [@".DS_Store\nIcon\\r\n" writeToFile:[self.path stringByAppendingPathComponent:@".hgignore"] atomically:YES];
     log_info("%s: Wrote default .hgignore file", [self.name UTF8String]);
     log_notice("Initialized %s (\"%s\") -- just need to sync one first time...", [self.name UTF8String], [self.path UTF8String]);
     sync_task = [self _hgTaskCommit:self.path];
