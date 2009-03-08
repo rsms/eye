@@ -10,6 +10,9 @@
 static EyeMonitor *_default = nil;
 
 
+@synthesize operations;
+
+
 + (EyeMonitor *)defaultMonitor {
   if (_default == nil)
     _default = [[EyeMonitor alloc] init];
@@ -22,6 +25,7 @@ static EyeMonitor *_default = nil;
     return nil;
   
   configuration = [EyeMonitoredConfiguration defaultConfiguration];
+  operations = [[NSOperationQueue alloc] init];
   
   return self;
 }
@@ -36,11 +40,18 @@ static EyeMonitor *_default = nil;
   
   log_info("Registering repositories");
   NSEnumerator *en = [configuration.repositories objectEnumerator];
-  for (EyeMonitoredRepository *repo in en)
+  for (EyeMonitoredRepository *repo in en) {
     [repo startMonitoring];
+    [repo synchronize];
+  }
   
   log_info("Entering runloop");
   [[NSRunLoop mainRunLoop] run];
+  
+  log_info("Shutting down -- flushing operation queue...");
+  [operations cancelAllOperations];
+  // todo: see if we can use int setitimer(3); to add timeout to this one
+  [operations waitUntilAllOperationsAreFinished];
 }
 
 

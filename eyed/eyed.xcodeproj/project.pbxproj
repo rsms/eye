@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A3ADFEE0F63FC7A00927C4A /* EyeRepositorySyncOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ADFED0F63FC7A00927C4A /* EyeRepositorySyncOperation.m */; };
+		3A3ADFF10F6401A600927C4A /* EyeRepositoryOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ADFF00F6401A600927C4A /* EyeRepositoryOperation.m */; };
+		3A3ADFF40F64020E00927C4A /* EyeRepositoryInitOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ADFF30F64020E00927C4A /* EyeRepositoryInitOperation.m */; };
+		3A3ADFF70F6407EF00927C4A /* EyeRepositoryCommitOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ADFF60F6407EF00927C4A /* EyeRepositoryCommitOperation.m */; };
 		3A4F679E0E2A6E36002C19C2 /* NSTask+EyeAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F679D0E2A6E36002C19C2 /* NSTask+EyeAdditions.m */; };
 		3A4F67F60E2A7C90002C19C2 /* logging.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F67F50E2A7C90002C19C2 /* logging.c */; };
 		3A653B490DEB6DF100B15BE6 /* NSError+EyeAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A653B470DEB6DF100B15BE6 /* NSError+EyeAdditions.m */; };
@@ -38,6 +42,14 @@
 
 /* Begin PBXFileReference section */
 		097DBE83FE8419DDC02AAC07 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		3A3ADFEC0F63FC7A00927C4A /* EyeRepositorySyncOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeRepositorySyncOperation.h; sourceTree = "<group>"; };
+		3A3ADFED0F63FC7A00927C4A /* EyeRepositorySyncOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeRepositorySyncOperation.m; sourceTree = "<group>"; };
+		3A3ADFEF0F6401A600927C4A /* EyeRepositoryOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeRepositoryOperation.h; sourceTree = "<group>"; };
+		3A3ADFF00F6401A600927C4A /* EyeRepositoryOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeRepositoryOperation.m; sourceTree = "<group>"; };
+		3A3ADFF20F64020E00927C4A /* EyeRepositoryInitOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeRepositoryInitOperation.h; sourceTree = "<group>"; };
+		3A3ADFF30F64020E00927C4A /* EyeRepositoryInitOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeRepositoryInitOperation.m; sourceTree = "<group>"; };
+		3A3ADFF50F6407EF00927C4A /* EyeRepositoryCommitOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeRepositoryCommitOperation.h; sourceTree = "<group>"; };
+		3A3ADFF60F6407EF00927C4A /* EyeRepositoryCommitOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeRepositoryCommitOperation.m; sourceTree = "<group>"; };
 		3A4F679C0E2A6E36002C19C2 /* NSTask+EyeAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSTask+EyeAdditions.h"; sourceTree = "<group>"; };
 		3A4F679D0E2A6E36002C19C2 /* NSTask+EyeAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSTask+EyeAdditions.m"; sourceTree = "<group>"; };
 		3A4F67EF0E2A7935002C19C2 /* logging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logging.h; sourceTree = "<group>"; };
@@ -99,6 +111,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		3A3ADFEA0F63FC3400927C4A /* Operations */ = {
+			isa = PBXGroup;
+			children = (
+				3A3ADFEF0F6401A600927C4A /* EyeRepositoryOperation.h */,
+				3A3ADFF00F6401A600927C4A /* EyeRepositoryOperation.m */,
+				3A3ADFEC0F63FC7A00927C4A /* EyeRepositorySyncOperation.h */,
+				3A3ADFED0F63FC7A00927C4A /* EyeRepositorySyncOperation.m */,
+				3A3ADFF20F64020E00927C4A /* EyeRepositoryInitOperation.h */,
+				3A3ADFF30F64020E00927C4A /* EyeRepositoryInitOperation.m */,
+				3A3ADFF50F6407EF00927C4A /* EyeRepositoryCommitOperation.h */,
+				3A3ADFF60F6407EF00927C4A /* EyeRepositoryCommitOperation.m */,
+			);
+			name = Operations;
+			sourceTree = "<group>";
+		};
 		3A4F67F80E2A7CB7002C19C2 /* Globals */ = {
 			isa = PBXGroup;
 			children = (
@@ -148,6 +175,7 @@
 				3A4F67F80E2A7CB7002C19C2 /* Globals */,
 				3A653B4A0DEB6DF700B15BE6 /* NS Additions */,
 				3AEF44180DD27E3200ECEAC9 /* Monitored */,
+				3A3ADFEA0F63FC3400927C4A /* Operations */,
 				3AEF43190DD262A800ECEAC9 /* EyeMonitor.h */,
 				3AEF431A0DD262A800ECEAC9 /* EyeMonitor.m */,
 				3AEF43080DD25F9500ECEAC9 /* EyeException.h */,
@@ -223,6 +251,10 @@
 				3A653B490DEB6DF100B15BE6 /* NSError+EyeAdditions.m in Sources */,
 				3A4F679E0E2A6E36002C19C2 /* NSTask+EyeAdditions.m in Sources */,
 				3A4F67F60E2A7C90002C19C2 /* logging.c in Sources */,
+				3A3ADFEE0F63FC7A00927C4A /* EyeRepositorySyncOperation.m in Sources */,
+				3A3ADFF10F6401A600927C4A /* EyeRepositoryOperation.m in Sources */,
+				3A3ADFF40F64020E00927C4A /* EyeRepositoryInitOperation.m in Sources */,
+				3A3ADFF70F6407EF00927C4A /* EyeRepositoryCommitOperation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

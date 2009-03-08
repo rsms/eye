@@ -37,6 +37,7 @@ extern aslclient asl_client;
 #define log_alert(fmt, ...)  log_(ASL_LEVEL_ALERT,  "[%s] " fmt " (%s:%d)", SRC_MODULE, ##__VA_ARGS__, __FILENAME__, __LINE__)
 #define log_crit(fmt, ...)   log_(ASL_LEVEL_CRIT,   "[%s] " fmt " (%s:%d)", SRC_MODULE, ##__VA_ARGS__, __FILENAME__, __LINE__)
 #define log_err(fmt, ...)    log_(ASL_LEVEL_ERR,    "[%s] " fmt " (%s:%d)", SRC_MODULE, ##__VA_ARGS__, __FILENAME__, __LINE__)
+#define log_error(fmt, ...)  log_(ASL_LEVEL_ERR,    "[%s] " fmt " (%s:%d)", SRC_MODULE, ##__VA_ARGS__, __FILENAME__, __LINE__)
 #define log_warn(fmt, ...)   log_(ASL_LEVEL_WARNING,"[%s] " fmt,            SRC_MODULE, ##__VA_ARGS__)
 #define log_notice(fmt, ...) log_(ASL_LEVEL_NOTICE, "[%s] " fmt,            SRC_MODULE, ##__VA_ARGS__)
 #define log_info(fmt, ...)   log_(ASL_LEVEL_INFO,   "[%s] " fmt,            SRC_MODULE, ##__VA_ARGS__)

@@ -2,16 +2,17 @@
 
 @interface EyeMonitoredRepository : EyeMonitored {
   NSString *identifier;
-  NSTask *sync_task;
+  NSOperationQueue *operations;
 }
 
 @property(readonly) NSString *identifier;
+@property(readonly) NSOperationQueue *operations;
 
 #pragma mark Initializing
 - (id)initWithIdentifier:(NSString *)identifier configuration:(NSMutableDictionary *)plist;
 
 #pragma mark Synchronizing
 - (void)synchronizePath:(NSString *)path recursive:(BOOL)recursive;
-- (void)synchronizationTaskDidEnd:(NSNotification *)n;
+- (void)synchronize;
 
 @end

@@ -29,7 +29,7 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
   
   // For each event, dispatch a notification
   for (size_t i=0; i < num_events; i++) {
-    path = [NSString stringWithUTF8String:event_paths[i]];
+    path = [[NSString stringWithUTF8String:event_paths[i]] stringByStandardizingPath];
     
     // Skip .hg dirs
     if (strstr(event_paths[i], "/.hg")) {
@@ -55,8 +55,9 @@ static void _fsevents_callback(FSEventStreamRef streamRef,
     }
     
     // Set to base path if recursive
-    if (recursive)
+    if (recursive) {
       path = monitored.path;
+    }
     
     // Construct event info
     NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:

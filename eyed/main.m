@@ -62,8 +62,7 @@ int main (int argc, char * const *argv) {
       usage(argv[0]);
       fprintf(stderr,
               "\n"
-              "Copyright (c) %s Rasmus Andersson.\n"
-              "See http://trac.hunch.se/eye for more information.\n",
+              "Copyright (c) %s Notion.\n",
               (__DATE__+7) );
       exit(1);
       break;
