@@ -1,7 +1,5 @@
-syntax:glob
 */build/*
 *.xcodeproj/*.mode*
 *.xcodeproj/*.perspective*
 *.xcodeproj/*.pbxuser
-.DS_Store
 test-repo
