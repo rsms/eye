@@ -1,5 +1,5 @@
 */build/*
-eyed/eyed.xcodeproj/*.mode*
-eyed/eyed.xcodeproj/*.perspective*
-eyed/eyed.xcodeproj/*.pbxuser
+*/*.xcodeproj/*.mode*
+*/*.xcodeproj/*.perspective*
+*/*.xcodeproj/*.pbxuser
 test-repo
